@@ -1,0 +1,102 @@
+import sqlite3
+
+class db_manager:
+    def __init__(self,db_path:str = "data/information.db"):
+        #初始化数据库
+        self.conn = None                         #创建/打开数据库
+        self.cursor = None                       #创建数据库游标
+        self.db_path = db_path                   #数据库路径
+
+    #建立与数据库的连接
+    def connect(self):
+        self.conn = sqlite3.connect(self.db_path)
+        self.cursor = self.conn.cursor()
+
+    #结束与数据库的连接
+    def close(self):
+        if self.conn:
+            self.conn.close()
+
+    #创建必要的表
+    def _create_table(self):
+        # 学生表
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS students (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                class TEXT,
+                grade TEXT
+            )
+        ''')
+        
+        # 考试表
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS exams (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                date TEXT
+            )
+        ''')
+        
+        # 成绩表
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS scores (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                student_id INTEGER NOT NULL,
+                exam_id INTEGER NOT NULL,
+                subject TEXT NOT NULL,
+                raw_score REAL,
+                rank INTEGER,
+                total_candidates INTEGER,
+                converted_score REAL,
+                FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+                FOREIGN KEY (exam_id) REFERENCES exams(id) ON DELETE CASCADE,
+                UNIQUE(student_id, exam_id, subject)
+            )
+        ''')
+        
+        # 赋分规则表（存储省份规则JSON）
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS rule_province (
+                province TEXT PRIMARY KEY,
+                rule_json TEXT NOT NULL
+            )
+        ''')
+        
+        # 专业选科要求表
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS major_subject_require (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                major_name TEXT NOT NULL,
+                required_subjects TEXT  
+            )
+        ''')
+        
+        # 高校录取数据表
+        self.cursor.execute('''
+            CREATE TABLE IF NOT EXISTS college_admission (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                college_name TEXT NOT NULL,
+                year INTEGER,
+                province TEXT,
+                batch TEXT,
+                min_score INTEGER,
+                min_rank INTEGER
+            )
+        ''')
+        
+        # 创建常用索引加速查询
+        self.cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_scores_student ON scores(student_id)
+        ''')
+        self.cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_scores_exam ON scores(exam_id)
+        ''')
+        self.cursor.execute('''
+            CREATE INDEX IF NOT EXISTS idx_scores_subject ON scores(subject)
+        ''')
+        
+        self.conn.commit()
+
+
+    
