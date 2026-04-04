@@ -98,5 +98,42 @@ class db_manager:
         
         self.conn.commit()
 
+    #--------------------学生模块--------------------
+    
+    # ····添加学生····   
+    def add_student(self,id: int, name: str, class_name: str, grade: str):
+        self.cursor.execute('''
+            INSERT INTO students (id ,name, class, grade) VALUES (?, ?, ?, ?)
+        ''', (id, name, class_name, grade))
+        self.conn.commit()
 
+    # ····删除学生····
+    def delete_student(self, id: int):
+        self.cursor.execute('''
+            DELETE FROM students WHERE id = ?
+        ''', (id,))
+        self.conn.commit()
+
+    # ····更新学生信息····
+    def update_student(self, id: int, name: str = None, class_name: str = None, grade: str = None):
+        if name:
+            self.cursor.execute('''
+                UPDATE students SET name = ? WHERE id = ?
+            ''', (name, id))
+        if class_name:
+            self.cursor.execute('''
+                UPDATE students SET class = ? WHERE id = ?
+            ''', (class_name, id))
+        if grade:
+            self.cursor.execute('''
+                UPDATE students SET grade = ? WHERE id = ?
+            ''', (grade, id))
+        self.conn.commit()
+
+
+
+d = db_manager()
+d.connect()
+d._create_table()
+d.close()
     
