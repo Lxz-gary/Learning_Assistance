@@ -116,6 +116,13 @@ class db_manager:
 
     # ····更新学生信息····
     def update_student(self, id: int, name: str = None, class_name: str = None, grade: str = None):
+        if id:
+            self.cursor.execute('''
+                SELECT * FROM students WHERE id = ?
+            ''', (id,))
+            if not self.cursor.fetchone():
+                print(f"学生ID {id} 不存在，无法更新。")
+                return
         if name:
             self.cursor.execute('''
                 UPDATE students SET name = ? WHERE id = ?
@@ -130,10 +137,103 @@ class db_manager:
             ''', (grade, id))
         self.conn.commit()
 
+    #--------------------考试模块--------------------
+
+    # ····添加考试····
+    def add_exam(self, id: int, name: str, date: str):
+        self.cursor.execute('''
+            INSERT INTO exams (id, name, date) VALUES (?, ?, ?)
+        ''', (id, name, date))
+        self.conn.commit()
+
+    # ····删除考试····
+    def delete_exam(self, id: int):
+        self.cursor.execute('''
+            DELETE FROM exams WHERE id = ?
+        ''', (id,))
+        self.conn.commit()
+
+    # ····更新考试信息····
+    def update_exam(self, id: int, name: str = None, date: str = None):
+        if id:
+            self.cursor.execute('''
+                SELECT * FROM exams WHERE id = ?
+            ''', (id,))
+            if not self.cursor.fetchone():
+                print(f"考试ID {id} 不存在，无法更新。")
+                return
+        if name:
+            self.cursor.execute('''
+                UPDATE exams SET name = ? WHERE id = ?
+            ''', (name, id))
+        if date:
+            self.cursor.execute('''
+                UPDATE exams SET date = ? WHERE id = ?
+            ''', (date, id))
+        self.conn.commit()
+
+    #--------------------成绩模块--------------------
+
+    # ····添加成绩····
+    def add_score(self, student_id: int, exam_id: int, subject: str, raw_score: float, rank: int, total_candidates: int, converted_score: float):
+        self.cursor.execute('''
+            INSERT INTO scores (student_id, exam_id, subject, raw_score, rank, total_candidates, converted_score) 
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (student_id, exam_id, subject, raw_score, rank, total_candidates, converted_score))
+        self.conn.commit()
+    
+    # ····删除成绩····
+    def delete_score(self, score_id: int):
+        self.cursor.execute('''
+            DELETE FROM scores WHERE id = ?
+        ''', (score_id,))
+        self.conn.commit()
+
+    # ····更新成绩信息····  
+    def update_score(self, score_id: int, student_id: int = None, exam_id: int = None, subject: str = None, raw_score: float = None, rank: int = None, total_candidates: int = None, converted_score: float = None):
+        if score_id:
+            self.cursor.execute('''
+                SELECT * FROM scores WHERE id = ?
+            ''', (score_id,))
+            if not self.cursor.fetchone():
+                print(f"成绩ID {score_id} 不存在，无法更新。")
+                return
+        if student_id:
+            self.cursor.execute('''
+                UPDATE scores SET student_id = ? WHERE id = ?
+            ''', (student_id, score_id))
+        if exam_id:
+            self.cursor.execute('''
+                UPDATE scores SET exam_id = ? WHERE id = ?
+            ''', (exam_id, score_id))
+        if subject:
+            self.cursor.execute('''
+                UPDATE scores SET subject = ? WHERE id = ?
+            ''', (subject, score_id))
+        if raw_score is not None:
+            self.cursor.execute('''
+                UPDATE scores SET raw_score = ? WHERE id = ?
+            ''', (raw_score, score_id))
+        if rank is not None:
+            self.cursor.execute('''
+                UPDATE scores SET rank = ? WHERE id = ?
+            ''', (rank, score_id))
+        if total_candidates is not None:
+            self.cursor.execute('''
+                UPDATE scores SET total_candidates = ? WHERE id = ?
+            ''', (total_candidates, score_id))
+        if converted_score is not None:
+            self.cursor.execute('''
+                UPDATE scores SET converted_score = ? WHERE id = ?
+            ''', (converted_score, score_id))
+        self.conn.commit()
+
+            
+
+
 
 
 d = db_manager()
 d.connect()
 d._create_table()
 d.close()
-    
