@@ -1,6 +1,6 @@
 import sqlite3
 
-class db_manager:
+class DBManager:
     def __init__(self,db_path:str = "data/information.db"):
         #初始化数据库
         self.conn = None                         #创建/打开数据库
@@ -22,17 +22,19 @@ class db_manager:
         # 学生表
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS students (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id TEXT,
                 name TEXT NOT NULL,
                 class TEXT,
-                grade TEXT
+                grade TEXT,
+                phone_number TEXT,
+                email TEXT
             )
         ''')
         
         # 考试表
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS exams (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                id TEXT,
                 name TEXT NOT NULL,
                 date TEXT
             )
@@ -41,9 +43,9 @@ class db_manager:
         # 成绩表
         self.cursor.execute('''
             CREATE TABLE IF NOT EXISTS scores (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                student_id INTEGER NOT NULL,
-                exam_id INTEGER NOT NULL,
+                id TEXT PRIMARY KEY,
+                student_id TEXT NOT NULL,
+                exam_id TEXT NOT NULL,
                 subject TEXT NOT NULL,
                 raw_score REAL,
                 rank INTEGER,
@@ -98,13 +100,29 @@ class db_manager:
         
         self.conn.commit()
 
+    #清除数据库中的所有表（慎用）
+    def clear_database(self):
+        self.cursor.execute('DROP TABLE IF EXISTS students')
+        self.cursor.execute('DROP TABLE IF EXISTS exams')
+        self.cursor.execute('DROP TABLE IF EXISTS scores')
+        self.cursor.execute('DROP TABLE IF EXISTS rule_province')
+        self.cursor.execute('DROP TABLE IF EXISTS major_subject_require')
+        self.cursor.execute('DROP TABLE IF EXISTS college_admission')
+        self.conn.commit()
     #--------------------学生模块--------------------
     
     # ····添加学生····   
-    def add_student(self,id: int, name: str, class_name: str, grade: str):
+    def add_student(self,id: int, name: str, class_name: str, grade: str,phone_number: str = None, email: str = None):
+        # 确保所有字段都是字符串类型
+        id = str(id) if id is not None else ""
+        name = str(name) if name is not None else ""
+        class_name = str(class_name) if class_name is not None else ""
+        grade = str(grade) if grade is not None else ""  # 关键：将grade转换为字符串
+        phone_number = str(phone_number) if phone_number is not None else ""  # 关键：将phone_number转换为字符串
+        email = str(email) if email is not None else ""
         self.cursor.execute('''
-            INSERT INTO students (id ,name, class, grade) VALUES (?, ?, ?, ?)
-        ''', (id, name, class_name, grade))
+            INSERT INTO students (id ,name, class, grade, phone_number, email) VALUES (?, ?, ?, ?, ?, ?)
+        ''', (id, name, class_name, grade, phone_number, email))
         self.conn.commit()
 
     # ····删除学生····
@@ -115,7 +133,7 @@ class db_manager:
         self.conn.commit()
 
     # ····更新学生信息····
-    def update_student(self, id: int, name: str = None, class_name: str = None, grade: str = None):
+    def update_student(self, id: int, name: str = None, class_name: str = None, grade: str = None, phone_number: str = None, email: str = None):
         if id:
             self.cursor.execute('''
                 SELECT * FROM students WHERE id = ?
@@ -135,10 +153,18 @@ class db_manager:
             self.cursor.execute('''
                 UPDATE students SET grade = ? WHERE id = ?
             ''', (grade, id))
+        if phone_number:
+            self.cursor.execute('''
+                UPDATE students SET phone_number = ? WHERE id = ?
+            ''', (phone_number, id))
+        if email:
+            self.cursor.execute('''
+                UPDATE students SET email = ? WHERE id = ?
+            ''', (email, id))
         self.conn.commit()
 
     #····查询学生信息····
-    def query_students(self, id: int = None, name: str = None, class_name: str = None, grade: str = None):
+    def query_students(self, id: int = None, name: str = None, class_name: str = None, grade: str = None, phone_number: str = None, email: str = None): 
         query = "SELECT * FROM students WHERE 1=1"
         params = []
         if id:
@@ -153,6 +179,13 @@ class db_manager:
         if grade:
             query += " AND grade LIKE ?"
             params.append(f"%{grade}%")
+
+        if phone_number:
+            query += " AND phone_number LIKE ?"
+            params.append(f"%{phone_number}%")
+        if email:
+            query += " AND email LIKE ?"
+            params.append(f"%{email}%")
         self.cursor.execute(query, params)
         return self.cursor.fetchall()       
 
@@ -160,6 +193,10 @@ class db_manager:
 
     # ····添加考试····
     def add_exam(self, id: int, name: str, date: str):
+        #检测是否为字符串类型，如果不是则转换为字符串
+        id = str(id) if id is not None else ""
+        name = str(name) if name is not None else ""
+        date = str(date) if date is not None else ""
         self.cursor.execute('''
             INSERT INTO exams (id, name, date) VALUES (?, ?, ?)
         ''', (id, name, date))
@@ -211,6 +248,15 @@ class db_manager:
 
     # ····添加成绩····
     def add_score(self, student_id: int, exam_id: int, subject: str, raw_score: float, rank: int, total_candidates: int, converted_score: float):
+        #检测是否为字符串类型，如果不是则转换为字符串
+        student_id = str(student_id) if student_id is not None else ""
+        exam_id = str(exam_id) if exam_id is not None else ""   
+        subject = str(subject) if subject is not None else ""
+        raw_score = float(raw_score) if raw_score is not None else 0.0
+        rank = int(rank) if rank is not None else 0
+        total_candidates = int(total_candidates) if total_candidates is not None else 0
+        converted_score = float(converted_score) if converted_score is not None else 0.0
+
         self.cursor.execute('''
             INSERT INTO scores (student_id, exam_id, subject, raw_score, rank, total_candidates, converted_score) 
             VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -285,7 +331,7 @@ class db_manager:
 
 
 
-d = db_manager()
+d = DBManager()
 d.connect()
 d._create_table()
 d.close()

@@ -19,10 +19,12 @@ class DataReader:
         students = []
         for _, row in df.iterrows():
             student = {
-                "id": int(row["学生ID"]),
+                "id": row["学生ID"],
                 "name": row["姓名"],
-                "class": row["班级"],
-                "grade": row["年级"]
+                "class": str(row["班级"]),
+                "grade": str(row["年级"]),
+                "phone_number": str(row["电话号码"]),
+                "email": row["邮箱"]
             }
             students.append(student)
         return students
@@ -37,7 +39,7 @@ class DataReader:
         exams = []
         for _, row in df.iterrows():
             exam = {
-                "id": int(row["考试ID"]),
+                "id": row["考试ID"],
                 "name": row["考试名称"],
                 "date": row["考试日期"]
             }
@@ -54,9 +56,8 @@ class DataReader:
         scores = []
         for _, row in df.iterrows():
             score = {
-                "id": int(row["成绩ID"]),
-                "student_id": int(row["学生ID"]),
-                "exam_id": int(row["考试ID"]),
+                "student_id": row["学生ID"],
+                "exam_id": row["考试ID"],
                 "subject": row["科目"],
                 "raw_score": row["成绩"],
                 "rank": int(row["排名"]),
