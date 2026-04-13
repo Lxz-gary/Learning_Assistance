@@ -137,6 +137,25 @@ class db_manager:
             ''', (grade, id))
         self.conn.commit()
 
+    #····查询学生信息····
+    def query_students(self, id: int = None, name: str = None, class_name: str = None, grade: str = None):
+        query = "SELECT * FROM students WHERE 1=1"
+        params = []
+        if id:
+            query += " AND id = ?"
+            params.append(id)
+        if name:
+            query += " AND name LIKE ?"
+            params.append(f"%{name}%")
+        if class_name:  
+            query += " AND class LIKE ?"
+            params.append(f"%{class_name}%")
+        if grade:
+            query += " AND grade LIKE ?"
+            params.append(f"%{grade}%")
+        self.cursor.execute(query, params)
+        return self.cursor.fetchall()       
+
     #--------------------考试模块--------------------
 
     # ····添加考试····
@@ -171,6 +190,22 @@ class db_manager:
                 UPDATE exams SET date = ? WHERE id = ?
             ''', (date, id))
         self.conn.commit()
+
+    #····查询考试信息····
+    def query_exams(self, id: int = None, name: str = None, date: str = None):
+        query = "SELECT * FROM exams WHERE 1=1"
+        params = []
+        if id:
+            query += " AND id = ?"
+            params.append(id)
+        if name:
+            query += " AND name LIKE ?"
+            params.append(f"%{name}%")
+        if date:        
+            query += " AND date = ?"
+            params.append(date)
+        self.cursor.execute(query, params)
+        return self.cursor.fetchall()
 
     #--------------------成绩模块--------------------
 
@@ -228,7 +263,24 @@ class db_manager:
             ''', (converted_score, score_id))
         self.conn.commit()
 
-            
+    #····查询成绩信息····
+    def query_scores(self, score_id: int = None, student_id: int = None , exam_id: int = None, subject: str = None):
+        query = "SELECT * FROM scores WHERE 1=1"
+        params = []
+        if score_id:
+            query += " AND id = ?"
+            params.append(score_id)
+        if student_id:
+            query += " AND student_id = ?"
+            params.append(student_id)
+        if exam_id:
+            query += " AND exam_id = ?"
+            params.append(exam_id)
+        if subject:
+            query += " AND subject LIKE ?"
+            params.append(f"%{subject}%")
+        self.cursor.execute(query, params)
+        return self.cursor.fetchall()     
 
 
 
