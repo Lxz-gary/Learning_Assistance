@@ -165,21 +165,21 @@ class DBManager:
 
     #····查询学生信息····
     def query_students(self, id: int = None, name: str = None, class_name: str = None, grade: str = None, phone_number: str = None, email: str = None): 
+        #给出查询条件，返回满足条件的学生信息列表（要求可以同时给出两个条件，并且查找同时满足两个条件的学生信息）
         query = "SELECT * FROM students WHERE 1=1"
         params = []
         if id:
             query += " AND id = ?"
             params.append(id)
-        if name:
+        if name:    
             query += " AND name LIKE ?"
             params.append(f"%{name}%")
-        if class_name:  
+        if class_name:
             query += " AND class LIKE ?"
             params.append(f"%{class_name}%")
         if grade:
-            query += " AND grade LIKE ?"
-            params.append(f"%{grade}%")
-
+            query += " AND grade = ?"
+            params.append(grade)
         if phone_number:
             query += " AND phone_number LIKE ?"
             params.append(f"%{phone_number}%")
@@ -187,7 +187,9 @@ class DBManager:
             query += " AND email LIKE ?"
             params.append(f"%{email}%")
         self.cursor.execute(query, params)
-        return self.cursor.fetchall()       
+        return self.cursor.fetchall()   
+        
+
 
     #--------------------考试模块--------------------
 
@@ -230,6 +232,7 @@ class DBManager:
 
     #····查询考试信息····
     def query_exams(self, id: int = None, name: str = None, date: str = None):
+        #给出查询条件，返回满足条件的考试信息列表（要求可以同时给出两个条件，并且查找同时满足两个条件的考试信息）
         query = "SELECT * FROM exams WHERE 1=1"
         params = []
         if id:
@@ -238,7 +241,7 @@ class DBManager:
         if name:
             query += " AND name LIKE ?"
             params.append(f"%{name}%")
-        if date:        
+        if date:
             query += " AND date = ?"
             params.append(date)
         self.cursor.execute(query, params)
@@ -311,12 +314,13 @@ class DBManager:
 
     #····查询成绩信息····
     def query_scores(self, score_id: int = None, student_id: int = None , exam_id: int = None, subject: str = None):
+        #给出查询条件，返回满足条件的成绩信息列表（要求可以同时给出两个条件，并且查找同时满足两个条件的成绩信息）
         query = "SELECT * FROM scores WHERE 1=1"
         params = []
         if score_id:
             query += " AND id = ?"
             params.append(score_id)
-        if student_id:
+        if student_id:  
             query += " AND student_id = ?"
             params.append(student_id)
         if exam_id:
@@ -326,7 +330,7 @@ class DBManager:
             query += " AND subject LIKE ?"
             params.append(f"%{subject}%")
         self.cursor.execute(query, params)
-        return self.cursor.fetchall()     
+        return self.cursor.fetchall()      
 
 
 
