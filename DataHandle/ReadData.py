@@ -9,7 +9,6 @@ class ReadData:
     def read_studentdata(self,path):
         df = pd.read_excel(path)
         list_of_tuples = [tuple(row) for row in df.values]
-
         return list_of_tuples
 
     #读取考试数据

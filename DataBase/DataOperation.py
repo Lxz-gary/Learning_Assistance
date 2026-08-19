@@ -81,6 +81,7 @@ class DatabaseManager:
             '''
             student_id-学生编号,str
             exam_id-考试编号,str
+            subject-考试科目,str
             initialscore-初始成绩,int
             score-最终成绩,int
             rank-排名,int
@@ -93,6 +94,7 @@ class DatabaseManager:
                 (
                     student_id TEXT,
                     exam_id TEXT,
+                    subject TEXT NOT NULL,
                     initialscore INTEGER NOT NULL,
                     score INTEGER NOT NULL,
                     rank INTEGER NOT NULL,
@@ -136,13 +138,13 @@ class DatabaseManager:
                 #成绩
                 if type == "score":
                     #检查是否存在
-                    if self.query_scores(data[0], data[1], None, None, None, None):
+                    if self.query_scores(data[0], data[1], None, None, None, None,None):
                         return f"Score for student_id {data[0]} and exam_id {data[1]} already exists." 
 
                     data = data + (self.get_localtime(), self.get_localtime())
                     cursor.execute('''
-                        INSERT INTO scores (student_id, exam_id, initialscore, score, rank, headcount, createtime, changetime)
-                    VALUES (?, ?, ?, ?, ?, ?, ?, ?)''', data)
+                        INSERT INTO scores (student_id, exam_id, subject ,initialscore, score, rank, headcount, createtime, changetime)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)''', data)
                 conn.commit()
 
         except sqlite3.IntegrityError as e:
@@ -178,24 +180,22 @@ class DatabaseManager:
                         WHERE id = ?''', (data[1], data[2], self.get_localtime(), data[0]))
                 #成绩
                 if type == "score":
-                    #如果有字段为None，则查询数据库中该成绩的对应字段值，并替换为查询结果
+                    #如果有字段为None，则查询数据库中该成绩的对应字段值，并替换为查询结果(加入subject字段)
                     for i in range(2, len(data)):
                         if data[i] is None:
                             data[i] = self.query_scores(data[0], data[1], None, None, None, None)[0][i]
                     data = data + (self.get_localtime(),)
-                    cursor.execute(
-'''
+                    cursor.execute('''
                         UPDATE scores
-                        SET initialscore = ?, score = ?, rank = ?, headcount = ?, changetime = ?
-                        WHERE student_id = ? AND exam_id = ?''', (data[2], data[3], data[4], data[5], self.get_localtime(), data[0], data[1])
-                    )
+                        SET subject = ?, initialscore = ?, score = ?, rank = ?, headcount = ?, changetime = ?
+                        WHERE student_id = ? AND exam_id = ?''', (data[2], data[3], data[4], data[5], data[6], self.get_localtime(), data[0], data[1]))
                 conn.commit()
 
         except sqlite3.IntegrityError as e:
             return "Error replacing {type} data: {e}"
 
     #查询学生数据
-    def query_students(self,id,name,Class,garde,telephonenum,email):
+    def query_students(self,id,name,Class,grade,telephonenum,email):
         #检查是否存在该学生，如果存在则返回该学生信息，否则返回空列表
         with self.get_db_connection('my_database.db') as conn:
             cursor = conn.cursor()
@@ -210,9 +210,9 @@ class DatabaseManager:
             if Class:
                 query += " AND class = ?"
                 params.append(Class)
-            if garde:
+            if grade:
                 query += " AND grade = ?"
-                params.append(garde)
+                params.append(grade)
             if telephonenum:
                 query += " AND telephonenum = ?"
                 params.append(telephonenum)
@@ -243,7 +243,7 @@ class DatabaseManager:
             return cursor.fetchall()
 
     #查询成绩数据
-    def query_scores(self,student_id,exam_id,initialscore,score,rank,headcount):
+    def query_scores(self,student_id,exam_id,subject,initialscore,score,rank,headcount):
         with self.get_db_connection('my_database.db') as conn:
             cursor = conn.cursor()
             query = "SELECT * FROM scores WHERE 1=1"
@@ -266,7 +266,9 @@ class DatabaseManager:
             if headcount is not None:
                 query += " AND headcount = ?"
                 params.append(headcount)
-
+            if subject:
+                query += " AND subject = ?"
+                params.append(subject)
             cursor.execute(query, params)
             return cursor.fetchall()        
         
