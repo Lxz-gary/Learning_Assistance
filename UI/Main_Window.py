@@ -75,8 +75,12 @@ class MainWindow:
             widget.destroy()
 
         # 创建查询数据界面
-        query_label = tk.Label(self.content, text="查询数据", bg=COLORS["content_bg"], fg=COLORS["text_primary"], font=("PingFang SC", 20))
-        query_label.pack(pady=20, padx=20, fill="both", expand=True)
+        query_label = tk.Label(self.content, text="查询数据", bg=COLORS["content_bg"], fg=COLORS["Level1fg"], font=("PingFang SC", 20))
+        query_label.grid(row=0,column=0,padx=5,pady=5)
+
+        tk.Label(self.content,text="查询类型：", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=1,column=0,padx=5,pady=5)
+        C_target = ttk.Combobox(self.content,values=["学生","考试","成绩"],background=COLORS["content_bg"])
+        C_target.grid(row=1,column=1)
 
 
 
