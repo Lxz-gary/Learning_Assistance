@@ -1,14 +1,11 @@
 import tkinter as tk
+import customtkinter as ctk
 from tkinter import ttk
-from typing import TYPE_CHECKING
+import queue,threading,time
+from .QueryWindow import QueryWindow
 
-if TYPE_CHECKING:
-    
-    root: tk.Tk
 
-root = tk.Tk()
-root.title("成绩分析系统")
-root.geometry()
+
 
 # 颜色主题
 COLORS = {
@@ -23,9 +20,13 @@ COLORS = {
     "border": "#2c2c3a"           # 分割线颜色
 }
 
+
+
+#主窗口类
 class MainWindow:
     root: tk.Tk
     def __init__(self, root: tk.Tk):
+        
         self.root: tk.Tk = root
         root.title("成绩分析系统")
         root.geometry("1000x680")
@@ -60,6 +61,9 @@ class MainWindow:
         self.create_Button(B_query, self.build_query_page)
         B_query.pack(pady=5, padx=20, fill="x")
 
+        # 子界面类
+        self.query_window = QueryWindow(root, self.content)
+
         root.mainloop()
 
     #把Label改为Button，并绑定点击事件
@@ -70,19 +74,10 @@ class MainWindow:
 
     #为查询数据搭建页面
     def build_query_page(self):
-        # 清空内容区
-        for widget in self.content.winfo_children():
-            widget.destroy()
+        self.query_window.build_query_page()
 
-        # 创建查询数据界面
-        query_label = tk.Label(self.content, text="查询数据", bg=COLORS["content_bg"], fg=COLORS["Level1fg"], font=("PingFang SC", 20))
-        query_label.grid(row=0,column=0,padx=5,pady=5)
 
-        tk.Label(self.content,text="查询类型：", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=1,column=0,padx=5,pady=5)
-        C_target = ttk.Combobox(self.content,values=["学生","考试","成绩"],background=COLORS["content_bg"])
-        C_target.grid(row=1,column=1)
+        
 
 
 
-root = tk.Tk()
-app = MainWindow(root)

@@ -42,7 +42,7 @@ class DatabaseManager:
             id-学生编号,str
             name-学生姓名,str
             class-学生班级,str
-            grade-学生成绩,str
+            grade-学生年级,str
             telephonenum-学生电话,str
             email-学生邮箱,str
             createtime-创建时间,str
@@ -195,7 +195,7 @@ class DatabaseManager:
             return "Error replacing {type} data: {e}"
 
     #查询学生数据
-    def query_students(self,id,name,Class,grade,telephonenum,email):
+    def query_students(self,id,name,Class,grade,telephonenum,email,createtime,changetime):
         #检查是否存在该学生，如果存在则返回该学生信息，否则返回空列表
         with self.get_db_connection('my_database.db') as conn:
             cursor = conn.cursor()
@@ -219,12 +219,18 @@ class DatabaseManager:
             if email:
                 query += " AND email = ?"
                 params.append(email)
+            if createtime:
+                query += " AND createtime = ?"
+                params.append(createtime)
+            if changetime:
+                query += " AND changetime = ?"
+                params.append(changetime)
 
             cursor.execute(query, params)
             return cursor.fetchall()
 
     #查询考试数据
-    def query_exams(self,id,name,date):
+    def query_exams(self,id,name,date,createtime,changetime):
         with self.get_db_connection('my_database.db') as conn:
             cursor = conn.cursor()
             query = "SELECT * FROM exams WHERE 1=1"
@@ -238,12 +244,18 @@ class DatabaseManager:
             if date:
                 query += " AND date = ?"
                 params.append(date)
+            if createtime:
+                query += " AND createtime = ?"
+                params.append(createtime)
+            if changetime:
+                query += " AND changetime = ?"
+                params.append(changetime)
 
             cursor.execute(query, params)
             return cursor.fetchall()
 
     #查询成绩数据
-    def query_scores(self,student_id,exam_id,subject,initialscore,score,rank,headcount):
+    def query_scores(self,student_id,exam_id,subject,initialscore,score,rank,headcount,createtime,changetime):
         with self.get_db_connection('my_database.db') as conn:
             cursor = conn.cursor()
             query = "SELECT * FROM scores WHERE 1=1"
@@ -269,6 +281,12 @@ class DatabaseManager:
             if subject:
                 query += " AND subject = ?"
                 params.append(subject)
+            if createtime:
+                query += " AND createtime = ?"
+                params.append(createtime)
+            if changetime:
+                query += " AND changetime = ?"
+                params.append(changetime)
             cursor.execute(query, params)
             return cursor.fetchall()        
         
