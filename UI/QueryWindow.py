@@ -2,7 +2,7 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import queue, threading, time 
 import customtkinter as ctk
-from ..Controller.DataBaseController import DataBaseController
+from Controller.DataBaseController import DataBaseController
 
 # 颜色主题
 COLORS = {
@@ -59,15 +59,14 @@ class QueryWindow:
                             child.destroy()  # 彻底删除控件
 
                 if data == "学生":
-                    print("student")
                     self.pack_button("学生")
                 if data == "考试":
-                    print("exam")
+                    self.pack_button("考试")
                 if data == "成绩":
-                    print("score")
+                    self.pack_button("成绩")
     
             except queue.Empty:
-                print("done")
+                pass  # 如果队列为空，则不做任何操作
             self.root.after(100, practice_quene)  # 每100毫秒检查一次队列
                 
         #更新队列
@@ -95,7 +94,38 @@ class QueryWindow:
         email = self.E_email.get()
         createtime = self.E_createtime.get()
         changetime = self.E_changetime.get()
+        print(f"查询条件: 编号={id}, 姓名={name}, 班级={class_name}, 年级={grade}, 电话={telephonenum}, 邮箱={email}, 创建时间={createtime}, 修改时间={changetime}")
         results = db_controller.query_student(id, name, class_name, grade, telephonenum, email, createtime, changetime)
+
+        # 创建一个新的窗口来显示查询结果
+        root_search = tk.Toplevel(self.root)
+        root_search.title("查询结果")
+        root_search.geometry("800x400")
+        tree = ttk.Treeview(root_search, columns=("id", "name", "class_name", "grade", "telephonenum", "email", "createtime", "changetime"), show="headings")
+        tree.heading("id", text="编号")
+        tree.heading("name", text="姓名")
+        tree.heading("class_name", text="班级")
+        tree.heading("grade", text="年级")
+        tree.heading("telephonenum", text="电话")
+        tree.heading("email", text="邮箱")
+        tree.heading("createtime", text="创建时间")
+        tree.heading("changetime", text="修改时间")
+        for row in results:
+            tree.insert("", "end", values=row)
+        tree.pack(fill="both", expand=True)
+
+        # 创建滚动条（位于表格右边）
+        scrollbar = ttk.Scrollbar(root_search, orient="vertical", command=tree.yview)
+        tree.configure(yscrollcommand=scrollbar.set)
+        scrollbar.pack(side="right", fill="y")
+
+        # 创建关闭按钮
+        close_button = tk.Button(root_search, text="关闭", command=root_search.destroy)
+        close_button.pack(pady=10)
+
+
+        root_search.mainloop()
+
 
     def pack_button(self,target):
         if target == "学生":
@@ -131,8 +161,9 @@ class QueryWindow:
             self.E_changetime = tk.Entry(self.content_frame)
             self.E_changetime.grid(row=9,column=1 ,padx=5,pady=5)
 
-            B_confirm = tk.Label(self.content_frame,text="确认", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=10,column=0,padx=5,pady=5)
-            self.create_Button(B_confirm, lambda: self.search_students(target))
+            B_confirm = tk.Label(self.content_frame,text="确认", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16))
+            B_confirm.grid(row=10,column=0,padx=5,pady=5)
+            self.create_Button(B_confirm, lambda: self.search_students())
 
 
 

@@ -320,3 +320,8 @@ class DatabaseManager:
                 "exams": exam_count,
                 "scores": score_count
             }
+
+if __name__ == "__main__":
+    db_manager = DatabaseManager('my_database.db')
+    a = db_manager.query_students(None, None, None,"2", None, None, None, None)
+    print(a)
