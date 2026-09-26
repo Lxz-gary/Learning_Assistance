@@ -196,29 +196,30 @@ class DatabaseManager:
 
     #查询学生数据
     def query_students(self,id,name,Class,grade,telephonenum,email,createtime,changetime):
-        #检查是否存在该学生，如果存在则返回该学生信息，否则返回空列表
+        #检查是否存在该学生，如果存在则返回该学生信息，否则返回空列表(模糊化处理)
         with self.get_db_connection('my_database.db') as conn:
             cursor = conn.cursor()
             query = "SELECT * FROM students WHERE 1=1"
             params = []
+            #检查每个参数是否为None，如果不为None，则加入查询条件
             if id:
-                query += " AND id = ?"
-                params.append(id)
+                query += " AND id Like ?"
+                params.append(f"%{id}%")
             if name:
-                query += " AND name = ?"
-                params.append(name)
+                query += " AND name Like ?"
+                params.append(f"%{name}%")
             if Class:
-                query += " AND class = ?"
-                params.append(Class)
+                query += " AND class Like ?"
+                params.append(f"%{Class}%")
             if grade:
-                query += " AND grade = ?"
-                params.append(grade)
+                query += " AND grade Like ?"
+                params.append(f"%{grade}%")
             if telephonenum:
-                query += " AND telephonenum = ?"
-                params.append(telephonenum)
+                query += " AND telephonenum Like ?"
+                params.append(f"%{telephonenum}%")
             if email:
-                query += " AND email = ?"
-                params.append(email)
+                query += " AND email Like ?"
+                params.append(f"%{email}%")
             if createtime:
                 query += " AND createtime = ?"
                 params.append(createtime)
@@ -236,14 +237,14 @@ class DatabaseManager:
             query = "SELECT * FROM exams WHERE 1=1"
             params = []
             if id:
-                query += " AND id = ?"
-                params.append(id)
+                query += " AND id Like ?"
+                params.append(f"%{id}%")
             if name:
-                query += " AND name = ?"
-                params.append(name)
+                query += " AND name Like ?"
+                params.append(f"%{name}%")
             if date:
-                query += " AND date = ?"
-                params.append(date)
+                query += " AND date Like ?"
+                params.append(f"%{date}%")
             if createtime:
                 query += " AND createtime = ?"
                 params.append(createtime)
@@ -261,26 +262,26 @@ class DatabaseManager:
             query = "SELECT * FROM scores WHERE 1=1"
             params = []
             if student_id:
-                query += " AND student_id = ?"
-                params.append(student_id)
+                query += " AND student_id Like ?"
+                params.append(f"%{student_id}%")
             if exam_id:
-                query += " AND exam_id = ?"
-                params.append(exam_id)
+                query += " AND exam_id Like ?"
+                params.append(f"%{exam_id}%")
             if initialscore is not None:
-                query += " AND initialscore = ?"
-                params.append(initialscore)
+                query += " AND initialscore Like ?"
+                params.append(f"%{initialscore}%")
             if score is not None:
-                query += " AND score = ?"
-                params.append(score)
+                query += " AND score Like ?"
+                params.append(f"%{score}%")
             if rank is not None:
-                query += " AND rank = ?"
-                params.append(rank)
+                query += " AND rank Like ?"
+                params.append(f"%{rank}%")
             if headcount is not None:
-                query += " AND headcount = ?"
-                params.append(headcount)
+                query += " AND headcount Like ? "
+                params.append(f"%{headcount}%")
             if subject:
-                query += " AND subject = ?"
-                params.append(subject)
+                query += " AND subject Like ?"
+                params.append(f"%{subject}%")
             if createtime:
                 query += " AND createtime = ?"
                 params.append(createtime)

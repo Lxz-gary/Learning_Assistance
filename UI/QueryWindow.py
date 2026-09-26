@@ -130,6 +130,7 @@ class QueryWindow:
             id_, name, class_name, grade,
             telephonenum, email, createtime, changetime
         )
+        print(f"查询结果: {results}")
 
         # ---------- 结果窗口 ----------
         root_search = tk.Toplevel(self.root)
@@ -561,6 +562,37 @@ class QueryWindow:
 
         root_search.mainloop()
 
+    #查询成绩
+    def search_scores(self):
+        COLORS = {
+                           # —— 背景层 ——
+                           "sidebar_bg":      "#1a1b1e",   # 侧边栏：暖灰深色
+                           "content_bg":      "#212226",   # 内容区：比侧边栏稍亮，形成微妙层次
+                           "card_bg":         "#2a2b30",   # 卡片：柔和深灰（不再是纯白）
+               
+                           # —— 文字层 ——
+                           "Level1fg":        "#e5e7eb",   # 一级文字：柔白
+                           "Level2fg":        "#9ca3af",   # 二级文字：中灰
+                           "text_primary":    "#f3f4f6",   # 主文字：近白
+                           "text_secondary":  "#6b7280",   # 弱化文字：暗灰
+               
+                           # —— 交互层 ——
+                           "sidebar_active":  "#2f3037",   # 悬停/选中背景：柔和提升
+                           "accent":          "#5b6ef5",   # 强调色：柔和蓝紫（降饱和）
+                           "accent_soft":     "#2e3350",   # 强调色浅底（选中行背景）
+                           "accent_hover":    "#4a5ce0",   # 悬停深一档
+               
+                           # —— 边框/分隔 ——
+                           "border":          "#35363c",   # 边框：柔和深灰
+                           "divider":         "#2d2e33",   # 分隔线：更淡
+               
+                           # —— 状态色（柔和版） ——
+                           "success":         "#4ade80",
+                           "danger":          "#f87171",
+                           "warning":         "#fbbf24",
+                       }
+        
+    
     def pack_button(self,target):
         if target == "学生":
             tk.Label(self.content_frame,text="编号", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=2,column=0,padx=5,pady=5)
@@ -624,5 +656,43 @@ class QueryWindow:
             B_confirm.grid(row=7,column=0,padx=5,pady=5)
             self.create_Button(B_confirm, lambda: print("TODO: 查询考试数据"))
 
+        if target == "成绩":
+            tk.Label(self.content_frame,text="学生编号", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=2,column=0,padx=5,pady=5)
+            self.E_student_id = tk.Entry(self.content_frame)
+            self.E_student_id.grid(row=2,column=1,padx=5,pady=5)
 
+            tk.Label(self.content_frame,text="考试编号", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=3,column=0,padx=5,pady=5)
+            self.E_exam_id = tk.Entry(self.content_frame)
+            self.E_exam_id.grid(row=3,column=1,padx=5,pady=5)
 
+            tk.Label(self.content_frame,text="科目", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=4,column=0,padx=5,pady=5)
+            self.E_subject = tk.Entry(self.content_frame)
+            self.E_subject.grid(row=4,column=1,padx=5,pady=5)
+
+            tk.Label(self.content_frame,text="初始成绩", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=5,column=0,padx=5,pady=5)
+            self.E_initialscore = tk.Entry(self.content_frame)
+            self.E_initialscore.grid(row=5,column=1,padx=5,pady=5)
+
+            tk.Label(self.content_frame,text="成绩", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=6,column=0,padx=5,pady=5)
+            self.E_score = tk.Entry(self.content_frame)
+            self.E_score.grid(row=6,column=1,padx=5,pady=5)
+
+            tk.Label(self.content_frame,text="排名", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=7,column=0,padx=5,pady=5)
+            self.E_rank = tk.Entry(self.content_frame)
+            self.E_rank.grid(row=7,column=1,padx=5,pady=5)
+
+            tk.Label(self.content_frame,text="总人数", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=8,column=0,padx=5,pady=5)
+            self.E_headcount = tk.Entry(self.content_frame)
+            self.E_headcount.grid(row=8,column=1,padx=5,pady=5) 
+
+            tk.Label(self.content_frame,text="创建时间", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=9,column=0,padx=5,pady=5)
+            self.E_createtime = tk.Entry(self.content_frame)
+            self.E_createtime.grid(row=9,column=1,padx=5,pady=5)
+
+            tk.Label(self.content_frame,text="修改时间", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=10,column=0,padx=5,pady=5)
+            self.E_changetime = tk.Entry(self.content_frame)    
+            self.E_changetime.grid(row=10,column=1,padx=5,pady=5)
+
+            B_confirm = tk.Label(self.content_frame,text="确认", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16))
+            B_confirm.grid(row=11,column=0,padx=5,pady=5)
+            self.create_Button(B_confirm, lambda: print("TODO: 查询成绩数据"))
