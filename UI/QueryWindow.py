@@ -564,33 +564,234 @@ class QueryWindow:
 
     #查询成绩
     def search_scores(self):
-        COLORS = {
-                           # —— 背景层 ——
-                           "sidebar_bg":      "#1a1b1e",   # 侧边栏：暖灰深色
-                           "content_bg":      "#212226",   # 内容区：比侧边栏稍亮，形成微妙层次
-                           "card_bg":         "#2a2b30",   # 卡片：柔和深灰（不再是纯白）
-               
-                           # —— 文字层 ——
-                           "Level1fg":        "#e5e7eb",   # 一级文字：柔白
-                           "Level2fg":        "#9ca3af",   # 二级文字：中灰
-                           "text_primary":    "#f3f4f6",   # 主文字：近白
-                           "text_secondary":  "#6b7280",   # 弱化文字：暗灰
-               
-                           # —— 交互层 ——
-                           "sidebar_active":  "#2f3037",   # 悬停/选中背景：柔和提升
-                           "accent":          "#5b6ef5",   # 强调色：柔和蓝紫（降饱和）
-                           "accent_soft":     "#2e3350",   # 强调色浅底（选中行背景）
-                           "accent_hover":    "#4a5ce0",   # 悬停深一档
-               
-                           # —— 边框/分隔 ——
-                           "border":          "#35363c",   # 边框：柔和深灰
-                           "divider":         "#2d2e33",   # 分隔线：更淡
-               
-                           # —— 状态色（柔和版） ——
-                           "success":         "#4ade80",
-                           "danger":          "#f87171",
-                           "warning":         "#fbbf24",
-                       }
+        # ---------- 读取输入 ----------
+        student_id   = self.E_student_id.get()
+        exam_id      = self.E_exam_id.get()
+        subject      = self.E_subject.get()
+        initialscore = self.E_initialscore.get()
+        score        = self.E_score.get()
+        rank         = self.E_rank.get()
+        headcount    = self.E_headcount.get()
+        createtime   = self.E_createtime.get()
+        changetime   = self.E_changetime.get()
+
+        print(f"查询条件: 学号={student_id}, 考试编号={exam_id}, 科目={subject}, "
+            f"初始分={initialscore}, 分数={score}, 排名={rank}, 总人数={headcount}, "
+            f"创建时间={createtime}, 修改时间={changetime}")
+
+        results = db_controller.query_score(
+            student_id, exam_id, subject, initialscore, score,
+            rank, headcount, createtime, changetime
+        )
+
+        # ---------- 结果窗口 ----------
+        root_search = tk.Toplevel(self.root)
+        root_search.title("成绩查询结果")
+        root_search.configure(bg=COLORS["content_bg"])
+
+        W, H = 1200, 580
+        root_search.update_idletasks()
+        x = (root_search.winfo_screenwidth() - W) // 2
+        y = (root_search.winfo_screenheight() - H) // 2
+        root_search.geometry(f"{W}x{H}+{x}+{y}")
+        root_search.minsize(900, 440)
+
+        # ---------- ttk 样式 ----------
+        style = ttk.Style()
+        style.theme_use("clam")
+
+        # 表格主体
+        style.configure(
+            "DS.Treeview",
+            background=COLORS["sidebar_bg"],
+            foreground=COLORS["Level1fg"],
+            fieldbackground=COLORS["sidebar_bg"],
+            rowheight=42,
+            borderwidth=0,
+            relief="flat",
+            font=("PingFang SC", 12),
+        )
+
+        # 表头
+        style.configure(
+            "DS.Treeview.Heading",
+            background=COLORS["sidebar_active"],
+            foreground=COLORS["Level1fg"],
+            font=("PingFang SC", 11),
+            borderwidth=0,
+            relief="flat",
+            padding=(12, 14),
+        )
+        style.map(
+            "DS.Treeview.Heading",
+            background=[("active", COLORS["accent"])],
+            foreground=[("active", COLORS["card_bg"])],
+        )
+
+        # 选中行
+        style.map(
+            "DS.Treeview",
+            background=[("selected", COLORS["accent"])],
+            foreground=[("selected", COLORS["card_bg"])],
+        )
+
+        # 去掉 Treeview 外框
+        style.layout("DS.Treeview", [
+            ("DS.Treeview.treearea", {"sticky": "nswe"})
+        ])
+
+        # 滚动条
+        style.configure(
+            "DS.Vertical.TScrollbar",
+            background=COLORS["sidebar_active"],
+            troughcolor=COLORS["content_bg"],
+            bordercolor=COLORS["content_bg"],
+            arrowcolor=COLORS["Level2fg"],
+            borderwidth=0,
+            relief="flat",
+            width=8,
+        )
+        style.map(
+            "DS.Vertical.TScrollbar",
+            background=[("active", COLORS["accent"])],
+        )
+
+        # ---------- 顶部标题区 ----------
+        header = tk.Frame(root_search, bg=COLORS["content_bg"])
+        header.pack(fill="x", padx=36, pady=(28, 0))
+
+        tk.Label(
+            header, text="成绩查询结果",
+            bg=COLORS["content_bg"], fg=COLORS["Level1fg"],
+            font=("PingFang SC", 20, "bold"),
+        ).pack(side="left")
+
+        count_text = f"共 {len(results)} 条记录" if results else "无匹配记录"
+        tk.Label(
+            header, text=count_text,
+            bg=COLORS["content_bg"], fg=COLORS["Level2fg"],
+            font=("PingFang SC", 12),
+        ).pack(side="right", pady=(6, 0))
+
+        tk.Label(
+            root_search,
+            text="以下是符合筛选条件的全部成绩数据",
+            bg=COLORS["content_bg"], fg=COLORS["Level2fg"],
+            font=("PingFang SC", 12),
+        ).pack(anchor="w", padx=36, pady=(6, 18))
+
+        # ---------- 卡片容器 ----------
+        card = tk.Frame(
+            root_search,
+            bg=COLORS["sidebar_bg"],
+            highlightbackground=COLORS["border"],
+            highlightthickness=1,
+            bd=0,
+        )
+        card.pack(fill="both", expand=True, padx=36, pady=(0, 22))
+
+        table_frame = tk.Frame(card, bg=COLORS["sidebar_bg"])
+        table_frame.pack(fill="both", expand=True, padx=1, pady=1)
+
+        # ---------- 表格列 ----------
+        columns = (
+            "student_id", "exam_id", "subject",
+            "initialscore", "score", "rank", "headcount",
+            "createtime", "changetime",
+        )
+
+        tree = ttk.Treeview(
+            table_frame, columns=columns, show="headings",
+            style="DS.Treeview",
+        )
+
+        headers = {
+            "student_id":   ("学号",     100),
+            "exam_id":      ("考试编号", 110),
+            "subject":      ("科目",     100),
+            "initialscore": ("初始分数", 100),
+            "score":        ("分数",     90),
+            "rank":         ("排名",     80),
+            "headcount":    ("总人数",   90),
+            "createtime":   ("创建时间", 160),
+            "changetime":   ("修改时间", 160),
+        }
+        for col, (text, w) in headers.items():
+            tree.heading(col, text=text, anchor="w")
+            tree.column(col, anchor="w", width=w, minwidth=70, stretch=True)
+
+        # 斑马纹
+        tree.tag_configure("oddrow",  background=COLORS["sidebar_bg"])    # 基础深灰
+        tree.tag_configure("evenrow", background=COLORS["content_bg"])    # 更暗一档
+        tree.tag_configure("empty",   foreground=COLORS["Level2fg"])      # 空态
+
+        if results:
+            for i, row in enumerate(results):
+                tag = "evenrow" if i % 2 == 0 else "oddrow"
+                tree.insert("", "end", values=row, tags=(tag,))
+        else:
+            tree.insert("", "end", values=("—",) * len(columns), tags=("empty",))
+
+        # 滚动条 + 表格布局
+        scrollbar = ttk.Scrollbar(
+            table_frame, orient="vertical",
+            command=tree.yview, style="DS.Vertical.TScrollbar",
+        )
+        tree.configure(yscrollcommand=scrollbar.set)
+
+        tree.pack(side="left", fill="both", expand=True)
+        scrollbar.pack(side="right", fill="y")
+
+        # 横向滚动条（9 列较宽，加一个备用）
+        h_scrollbar = ttk.Scrollbar(
+            table_frame, orient="horizontal",
+            command=tree.xview, style="DS.Vertical.TScrollbar",
+        )
+        tree.configure(xscrollcommand=h_scrollbar.set)
+        h_scrollbar.pack(side="bottom", fill="x")
+
+        # ---------- 底部按钮区 ----------
+        footer = tk.Frame(root_search, bg=COLORS["content_bg"])
+        footer.pack(fill="x", padx=36, pady=(0, 26))
+
+        # 主按钮
+        close_btn = tk.Button(
+            footer, text="关闭",
+            command=root_search.destroy,
+            bg=COLORS["accent"], fg=COLORS["card_bg"],
+            activebackground=COLORS["sidebar_active"], activeforeground=COLORS["Level1fg"],
+            font=("PingFang SC", 12),
+            relief="flat", borderwidth=0,
+            padx=28, pady=10,
+            cursor="hand2",
+        )
+        close_btn.pack(side="right")
+
+        def on_enter(e): close_btn.configure(bg=COLORS["sidebar_active"])
+        def on_leave(e): close_btn.configure(bg=COLORS["accent"])
+        close_btn.bind("<Enter>", on_enter)
+        close_btn.bind("<Leave>", on_leave)
+
+        # 次按钮
+        def export_placeholder():
+            print("TODO: 导出成绩数据")
+
+        export_btn = tk.Button(
+            footer, text="导出",
+            command=export_placeholder,
+            bg=COLORS["content_bg"], fg=COLORS["Level1fg"],
+            activebackground=COLORS["sidebar_active"], activeforeground=COLORS["Level1fg"],
+            font=("PingFang SC", 12),
+            relief="flat", borderwidth=1,
+            highlightbackground=COLORS["border"],
+            highlightcolor=COLORS["accent"],
+            padx=24, pady=9,
+            cursor="hand2",
+        )
+        export_btn.pack(side="right", padx=(0, 12))
+
+        root_search.mainloop()
+                       
         
     
     def pack_button(self,target):
