@@ -2,7 +2,7 @@ import tkinter as tk
 import customtkinter as ctk
 from tkinter import ttk
 import queue,threading,time
-from .QueryWindow import QueryWindow
+from .OperateWindow import OperateWindow
 
 
 
@@ -57,12 +57,16 @@ class MainWindow:
         header = tk.Label(self.sidebar, text="成绩分析系统", bg=COLORS["sidebar_bg"], fg=COLORS["Level1fg"], font=("PingFang SC", 25, "bold"))
         header.pack(pady=20, padx=20, fill="x", anchor="w")
 
-        B_query = tk.Label(self.sidebar, text="查询数据", bg=COLORS["sidebar_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16, "bold"))
-        self.create_Button(B_query, self.build_query_page)
-        B_query.pack(pady=5, padx=20, fill="x")
+        B_operate = tk.Label(self.sidebar, text="查询数据 (只读)", bg=COLORS["sidebar_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16, "bold"))
+        self.create_Button(B_operate, self.build_operate_page)
+        B_operate.pack(pady=5, padx=20, fill="x")
+
+        B_operate = tk.Label(self.sidebar, text="数据操作 (增删改)", bg=COLORS["sidebar_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16, "bold"))
+        self.create_Button(B_operate, lambda: print("数据操作功能尚未实现"))
+        B_operate.pack(pady=5, padx=20, fill="x")
 
         # 子界面类
-        self.query_window = QueryWindow(root, self.content)
+        self.operate_window = OperateWindow(root, self.content)
 
         root.mainloop()
 
@@ -73,8 +77,8 @@ class MainWindow:
         button.bind("<Leave>", lambda event: button.config(bg=COLORS["sidebar_bg"]))        
 
     #为查询数据搭建页面
-    def build_query_page(self):
-        self.query_window.build_query_page()
+    def build_operate_page(self):
+        self.operate_window.build_operate_page()
 
 
         

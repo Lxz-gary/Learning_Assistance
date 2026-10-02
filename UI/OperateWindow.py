@@ -20,7 +20,7 @@ COLORS = {
 }
 db_controller = DataBaseController()
 
-class QueryWindow:
+class OperateWindow:
     #接受基本操作对象
     def __init__(self, root: tk.Tk, content_frame: tk.Frame):
         self.root = root
@@ -33,14 +33,14 @@ class QueryWindow:
         button.bind("<Leave>", lambda event: button.config(bg=COLORS["sidebar_bg"]))
 
     # 创建查询数据界面
-    def build_query_page(self):
+    def build_operate_page(self):
         # 清空内容区
         for widget in self.content_frame.winfo_children():
             widget.destroy()
     
         # 创建查询数据界面
-        query_label = tk.Label(self.content_frame, text="查询数据", bg=COLORS["content_bg"], fg=COLORS["Level1fg"], font=("PingFang SC", 20))
-        query_label.grid(row=0,column=0,padx=10,pady=10)
+        operate_label = tk.Label(self.content_frame, text="查询数据", bg=COLORS["content_bg"], fg=COLORS["Level1fg"], font=("PingFang SC", 20))
+        operate_label.grid(row=0,column=0,padx=10,pady=10)
     
         tk.Label(self.content_frame,text="查询类型：", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=1,column=0,padx=5,pady=5)
         C_target = ctk.CTkComboBox(self.content_frame,values=["学生","考试","成绩"],border_width=0)
@@ -69,7 +69,7 @@ class QueryWindow:
     
             except queue.Empty:
                 pass  # 如果队列为空，则不做任何操作
-            self.root.after(100, practice_quene)  # 每100毫秒检查一次队列
+            self.root.after(100, practice_quene)  # 每10毫秒检查一次队列
                 
         #更新队列
         def update_queue():
