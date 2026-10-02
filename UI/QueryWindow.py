@@ -2,7 +2,9 @@ import tkinter as tk
 import tkinter.ttk as ttk
 import queue, threading, time 
 import customtkinter as ctk
+from tkinter import filedialog
 from Controller.DataBaseController import DataBaseController
+from Utils.excel_exporter import export_to_excel
 
 # 颜色主题
 COLORS = {
@@ -137,12 +139,12 @@ class QueryWindow:
         root_search.title("查询结果")
         root_search.configure(bg=COLORS["content_bg"])
 
-        W, H = 1000, 580
+        W, H = 1000, 700
         root_search.update_idletasks()
         x = (root_search.winfo_screenwidth() - W) // 2
         y = (root_search.winfo_screenheight() - H) // 2
         root_search.geometry(f"{W}x{H}+{x}+{y}")
-        root_search.minsize(760, 440)
+        root_search.minsize(1000, 600)
 
         # ---------- ttk 样式 ----------
         style = ttk.Style()
@@ -309,7 +311,27 @@ class QueryWindow:
 
         # 次按钮：柔和描边
         def export_placeholder():
-            print("TODO: 导出功能")
+            """弹出系统标准的"保存文件"对话框"""
+            filepath = filedialog.asksaveasfilename(
+            title="保存文件",
+            defaultextension=".xlsx",
+            initialfile="未命名.xlsx",
+            filetypes=[
+                ("Excel 文件", "*.xlsx"),
+                ("所有文件", "*.*"),
+            ],
+        )
+            if not filepath:
+                print("用户取消了保存")
+                return None
+            print(f"选择的保存路径: {filepath}")
+            export_to_excel(
+                headers=[text for text, _ in headers.values()],
+                rows=results,
+                filepath=filepath,
+                sheet_name="查询结果",
+                title="查询结果导出",
+            )
 
         export_btn = tk.Button(
             footer, text="导出",
@@ -375,12 +397,12 @@ class QueryWindow:
         root_search.title("考试查询结果")
         root_search.configure(bg=COLORS["content_bg"])
 
-        W, H = 1000, 580
+        W, H = 1000, 700
         root_search.update_idletasks()
         x = (root_search.winfo_screenwidth() - W) // 2
         y = (root_search.winfo_screenheight() - H) // 2
         root_search.geometry(f"{W}x{H}+{x}+{y}")
-        root_search.minsize(760, 440)
+        root_search.minsize(1000, 600)
 
         # ---------- ttk 样式 ----------
         style = ttk.Style()
@@ -544,7 +566,27 @@ class QueryWindow:
 
         # 次按钮
         def export_placeholder():
-            print("TODO: 导出考试数据")
+            """弹出系统标准的"保存文件"对话框"""
+            filepath = filedialog.asksaveasfilename(
+            title="保存文件",
+            defaultextension=".xlsx",
+            initialfile="未命名.xlsx",
+            filetypes=[
+                        ("Excel 文件", "*.xlsx"),
+                        ("所有文件", "*.*"),
+                        ],
+                    )
+            if not filepath:
+                print("用户取消了保存")
+                return None
+            print(f"选择的保存路径: {filepath}")
+            export_to_excel(
+                headers=[text for text, _ in headers.values()],
+                rows=results,
+                filepath=filepath,
+                sheet_name="查询结果",
+                title="查询结果导出",
+                        )
 
         export_btn = tk.Button(
             footer, text="导出",
@@ -589,12 +631,12 @@ class QueryWindow:
         root_search.title("成绩查询结果")
         root_search.configure(bg=COLORS["content_bg"])
 
-        W, H = 1200, 580
+        W, H = 1200, 700
         root_search.update_idletasks()
         x = (root_search.winfo_screenwidth() - W) // 2
         y = (root_search.winfo_screenheight() - H) // 2
         root_search.geometry(f"{W}x{H}+{x}+{y}")
-        root_search.minsize(900, 440)
+        root_search.minsize(1000, 600)
 
         # ---------- ttk 样式 ----------
         style = ttk.Style()
@@ -774,7 +816,27 @@ class QueryWindow:
 
         # 次按钮
         def export_placeholder():
-            print("TODO: 导出成绩数据")
+            """弹出系统标准的"保存文件"对话框"""
+            filepath = filedialog.asksaveasfilename(
+            title="保存文件",
+            defaultextension=".xlsx",
+            initialfile="未命名.xlsx",
+            filetypes=[
+                ("Excel 文件", "*.xlsx"),
+                ("所有文件", "*.*"),
+            ],
+        )
+            if not filepath:
+                print("用户取消了保存")
+                return None
+            print(f"选择的保存路径: {filepath}")
+            export_to_excel(
+                headers=[text for text, _ in headers.values()],
+                rows=results,
+                filepath=filepath,
+                sheet_name="查询结果",
+                title="查询结果导出",
+                        )            
 
         export_btn = tk.Button(
             footer, text="导出",
@@ -855,7 +917,7 @@ class QueryWindow:
 
             B_confirm = tk.Label(self.content_frame,text="确认", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16))
             B_confirm.grid(row=7,column=0,padx=5,pady=5)
-            self.create_Button(B_confirm, lambda: print("TODO: 查询考试数据"))
+            self.create_Button(B_confirm, self.search_exams)
 
         if target == "成绩":
             tk.Label(self.content_frame,text="学生编号", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=2,column=0,padx=5,pady=5)
@@ -896,4 +958,4 @@ class QueryWindow:
 
             B_confirm = tk.Label(self.content_frame,text="确认", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16))
             B_confirm.grid(row=11,column=0,padx=5,pady=5)
-            self.create_Button(B_confirm, lambda: print("TODO: 查询成绩数据"))
+            self.create_Button(B_confirm, self.search_scores)
