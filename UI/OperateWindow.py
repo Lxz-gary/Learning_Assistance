@@ -89,32 +89,16 @@ class OperateWindow:
     # 查找学生数据
     def search_students(self):
         COLORS = {
-            # —— 背景层 ——
-            "sidebar_bg":      "#1a1b1e",   # 侧边栏：暖灰深色
-            "content_bg":      "#212226",   # 内容区：比侧边栏稍亮，形成微妙层次
-            "card_bg":         "#2a2b30",   # 卡片：柔和深灰（不再是纯白）
-
-            # —— 文字层 ——
-            "Level1fg":        "#e5e7eb",   # 一级文字：柔白
-            "Level2fg":        "#9ca3af",   # 二级文字：中灰
-            "text_primary":    "#f3f4f6",   # 主文字：近白
-            "text_secondary":  "#6b7280",   # 弱化文字：暗灰
-
-            # —— 交互层 ——
-            "sidebar_active":  "#2f3037",   # 悬停/选中背景：柔和提升
-            "accent":          "#5b6ef5",   # 强调色：柔和蓝紫（降饱和）
-            "accent_soft":     "#2e3350",   # 强调色浅底（选中行背景）
-            "accent_hover":    "#4a5ce0",   # 悬停深一档
-
-            # —— 边框/分隔 ——
-            "border":          "#35363c",   # 边框：柔和深灰
-            "divider":         "#2d2e33",   # 分隔线：更淡
-
-            # —— 状态色（柔和版） ——
-            "success":         "#4ade80",
-            "danger":          "#f87171",
-            "warning":         "#fbbf24",
-        }
+    "sidebar_bg": "#1e1f23",      # 深蓝灰侧边栏
+    "Level1fg": "#cbd5e1",        # 一级文字灰
+    "Level2fg": "#a1a1aa",        # 二级文字灰
+    "sidebar_active": "#334155",  # 鼠标悬停/选中背景
+    "accent": "#4f6af5",          # 亮蓝强调色
+    "content_bg": "#0d0d0d",      # 内容区背景浅灰
+    "card_bg": "#ffffff",         # 卡片纯白
+    "text_primary": "#0f172a",    # 深色主文字
+    "border": "#2c2c3a"           # 分割线颜色
+}
         # ---------- 读取输入 ----------
         id_ = self.E_id.get()
         name = self.E_name.get()
@@ -134,23 +118,32 @@ class OperateWindow:
         )
         print(f"查询结果: {results}")
 
-        # ---------- 结果窗口 ----------
-        root_search = tk.Toplevel(self.root)
-        root_search.title("查询结果")
-        root_search.configure(bg=COLORS["content_bg"])
+        # ==================================================================
+        # 在原界面内生成结果区（不新建窗口、不清空已有组件）
+        # ==================================================================
 
-        W, H = 1000, 700
-        root_search.update_idletasks()
-        x = (root_search.winfo_screenwidth() - W) // 2
-        y = (root_search.winfo_screenheight() - H) // 2
-        root_search.geometry(f"{W}x{H}+{x}+{y}")
-        root_search.minsize(1000, 600)
+        # 1) 如果上一次查询已经生成过结果区，只销毁它，输入框保持不动
+        if hasattr(self, "_result_container") and self._result_container.winfo_exists():
+            self._result_container.destroy()
+
+        # 2) 创建新的结果容器，挂在 content_frame 中
+        #    行号 20 是为避开输入框（row 2~10）。如果你有其他组件占用了 row 20，请调整此处行号
+        self._result_container = tk.Frame(self.content_frame, bg=COLORS["content_bg"])
+        self._result_container.grid(
+            row=7, column=0, columnspan=4,
+            sticky="nsew", padx=5, pady=(24, 5),
+        )
+
+        # 3) 让该行/列可伸缩，表格才能随窗口大小变化
+        self.content_frame.grid_rowconfigure(7, weight=1)
+        for _c in range(4):
+            self.content_frame.grid_columnconfigure(_c, weight=1)
 
         # ---------- ttk 样式 ----------
         style = ttk.Style()
         style.theme_use("clam")
 
-        # 表格主体（深灰卡片 + 柔白字）
+        # 表格主体
         style.configure(
             "DS.Treeview",
             background=COLORS["card_bg"],
@@ -162,7 +155,7 @@ class OperateWindow:
             font=("PingFang SC", 12),
         )
 
-        # 表头（比卡片稍深一档 + 二级灰字）
+        # 表头
         style.configure(
             "DS.Treeview.Heading",
             background=COLORS["sidebar_bg"],
@@ -178,10 +171,10 @@ class OperateWindow:
             foreground=[("active", COLORS["Level1fg"])],
         )
 
-        # 选中行（柔和蓝底 + 浅色字，不用纯蓝填充）
+        # 选中行
         style.map(
             "DS.Treeview",
-            background=[("selected", COLORS["accent_soft"])],
+            background=[("selected", COLORS["accent"])],
             foreground=[("selected", "#c7d2fe")],
         )
 
@@ -190,7 +183,7 @@ class OperateWindow:
             ("DS.Treeview.treearea", {"sticky": "nswe"})
         ])
 
-        # 滚动条（细、柔和、无边框）
+        # 滚动条
         style.configure(
             "DS.Vertical.TScrollbar",
             background=COLORS["border"],
@@ -206,14 +199,14 @@ class OperateWindow:
             background=[("active", COLORS["Level2fg"])],
         )
 
-        # ---------- 顶部标题区 ----------
-        header = tk.Frame(root_search, bg=COLORS["content_bg"])
-        header.pack(fill="x", padx=36, pady=(28, 0))
+        # ---------- 顶部标题行 ----------
+        header = tk.Frame(self._result_container, bg=COLORS["content_bg"])
+        header.pack(fill="x", pady=(0, 8))
 
         tk.Label(
             header, text="查询结果",
             bg=COLORS["content_bg"], fg=COLORS["Level1fg"],
-            font=("PingFang SC", 20, "bold"),
+            font=("PingFang SC", 18, "bold"),
         ).pack(side="left")
 
         count_text = f"共 {len(results)} 条记录" if results else "无匹配记录"
@@ -224,21 +217,21 @@ class OperateWindow:
         ).pack(side="right", pady=(6, 0))
 
         tk.Label(
-            root_search,
+            self._result_container,
             text="以下是符合筛选条件的全部数据",
             bg=COLORS["content_bg"], fg=COLORS["Level2fg"],
-            font=("PingFang SC", 12),
-        ).pack(anchor="w", padx=36, pady=(6, 18))
+            font=("PingFang SC", 11),
+        ).pack(anchor="w", pady=(0, 10))
 
-        # ---------- 卡片（深灰 + 柔和边框 + 圆润感） ----------
+        # ---------- 卡片容器 ----------
         card = tk.Frame(
-            root_search,
+            self._result_container,
             bg=COLORS["card_bg"],
             highlightbackground=COLORS["border"],
             highlightthickness=1,
             bd=0,
         )
-        card.pack(fill="both", expand=True, padx=36, pady=(0, 22))
+        card.pack(fill="both", expand=True)
 
         table_frame = tk.Frame(card, bg=COLORS["card_bg"])
         table_frame.pack(fill="both", expand=True, padx=1, pady=1)
@@ -248,7 +241,7 @@ class OperateWindow:
 
         tree = ttk.Treeview(
             table_frame, columns=columns, show="headings",
-            style="DS.Treeview",
+            style="DS.Treeview", height=10,
         )
 
         headers = {
@@ -265,10 +258,9 @@ class OperateWindow:
             tree.heading(col, text=text, anchor="w")
             tree.column(col, anchor="w", width=w, minwidth=70, stretch=True)
 
-        # 斑马纹：两种极接近的深灰，视觉上几乎无感但能引导视线
-        tree.tag_configure("oddrow",  background=COLORS["card_bg"])     # 基础深灰
-        tree.tag_configure("evenrow", background="#2f3037")             # 略亮一档
-        tree.tag_configure("empty",   foreground=COLORS["Level2fg"])    # 空态
+        tree.tag_configure("oddrow",  background=COLORS["card_bg"])
+        tree.tag_configure("evenrow", background="#2f3037")
+        tree.tag_configure("empty",   foreground=COLORS["Level2fg"])
 
         if results:
             for i, row in enumerate(results):
@@ -277,7 +269,6 @@ class OperateWindow:
         else:
             tree.insert("", "end", values=("—",) * len(columns), tags=("empty",))
 
-        # 滚动条 + 表格布局
         scrollbar = ttk.Scrollbar(
             table_frame, orient="vertical",
             command=tree.yview, style="DS.Vertical.TScrollbar",
@@ -288,15 +279,20 @@ class OperateWindow:
         scrollbar.pack(side="right", fill="y")
 
         # ---------- 底部按钮区 ----------
-        footer = tk.Frame(root_search, bg=COLORS["content_bg"])
-        footer.pack(fill="x", padx=36, pady=(0, 26))
+        footer = tk.Frame(self._result_container, bg=COLORS["content_bg"])
+        footer.pack(fill="x", pady=(12, 0))
 
-        # 主按钮：柔和蓝紫
+        # 主按钮：关闭结果区（只删除结果，不动输入框）
+        def close_result():
+            if hasattr(self, "_result_container") and self._result_container.winfo_exists():
+                self._result_container.destroy()
+                del self._result_container
+
         close_btn = tk.Button(
             footer, text="关闭",
-            command=root_search.destroy,
+            command=close_result,
             bg=COLORS["accent"], fg="#ffffff",
-            activebackground=COLORS["accent_hover"], activeforeground="#ffffff",
+            activebackground=COLORS["accent"], activeforeground="#ffffff",
             font=("PingFang SC", 12),
             relief="flat", borderwidth=0,
             padx=28, pady=10,
@@ -304,26 +300,25 @@ class OperateWindow:
         )
         close_btn.pack(side="right")
 
-        def on_enter(e): close_btn.configure(bg=COLORS["accent_hover"])
+        def on_enter(e): close_btn.configure(bg=COLORS["accent"])
         def on_leave(e): close_btn.configure(bg=COLORS["accent"])
         close_btn.bind("<Enter>", on_enter)
         close_btn.bind("<Leave>", on_leave)
 
-        # 次按钮：柔和描边
+        # 次按钮：导出
         def export_placeholder():
-            """弹出系统标准的"保存文件"对话框"""
             filepath = filedialog.asksaveasfilename(
-            title="保存文件",
-            defaultextension=".xlsx",
-            initialfile="未命名.xlsx",
-            filetypes=[
-                ("Excel 文件", "*.xlsx"),
-                ("所有文件", "*.*"),
-            ],
-        )
+                title="保存文件",
+                defaultextension=".xlsx",
+                initialfile="未命名.xlsx",
+                filetypes=[
+                    ("Excel 文件", "*.xlsx"),
+                    ("所有文件", "*.*"),
+                ],
+            )
             if not filepath:
                 print("用户取消了保存")
-                return None
+                return
             print(f"选择的保存路径: {filepath}")
             export_to_excel(
                 headers=[text for text, _ in headers.values()],
@@ -347,37 +342,44 @@ class OperateWindow:
         )
         export_btn.pack(side="right", padx=(0, 12))
 
-        root_search.mainloop()
+        footer = tk.Frame(self._result_container, bg=COLORS["content_bg"])
+        footer.pack(fill="x", pady=(12, 0))
+
+        # ——— 左侧：+ / − 按钮 ———
+        def make_small_btn(parent, text, cmd, hover_bg=None):
+            """统一风格的小按钮"""
+            btn = tk.Button(
+                parent, text=text, command=cmd,
+                bg=COLORS["sidebar_active"], fg=COLORS["Level1fg"],
+                activebackground=COLORS["accent"], activeforeground="#ffffff",
+                font=("PingFang SC", 14, "bold"),
+                relief="flat", borderwidth=0,
+                width=2, height=1,
+                cursor="hand2",
+            )
+            return btn
+
+        add_btn = make_small_btn(footer, "＋", lambda: print("添加成绩"))
+        add_btn.pack(side="left")
+
+        del_btn = make_small_btn(footer, "−", lambda: print("删除成绩"))
+        del_btn.pack(side="left", padx=(8, 0))
+
+       
 
     # 查找考试数据
     def search_exams(self):
         COLORS = {
-                   # —— 背景层 ——
-                   "sidebar_bg":      "#1a1b1e",   # 侧边栏：暖灰深色
-                   "content_bg":      "#212226",   # 内容区：比侧边栏稍亮，形成微妙层次
-                   "card_bg":         "#2a2b30",   # 卡片：柔和深灰（不再是纯白）
-       
-                   # —— 文字层 ——
-                   "Level1fg":        "#e5e7eb",   # 一级文字：柔白
-                   "Level2fg":        "#9ca3af",   # 二级文字：中灰
-                   "text_primary":    "#f3f4f6",   # 主文字：近白
-                   "text_secondary":  "#6b7280",   # 弱化文字：暗灰
-       
-                   # —— 交互层 ——
-                   "sidebar_active":  "#2f3037",   # 悬停/选中背景：柔和提升
-                   "accent":          "#5b6ef5",   # 强调色：柔和蓝紫（降饱和）
-                   "accent_soft":     "#2e3350",   # 强调色浅底（选中行背景）
-                   "accent_hover":    "#4a5ce0",   # 悬停深一档
-       
-                   # —— 边框/分隔 ——
-                   "border":          "#35363c",   # 边框：柔和深灰
-                   "divider":         "#2d2e33",   # 分隔线：更淡
-       
-                   # —— 状态色（柔和版） ——
-                   "success":         "#4ade80",
-                   "danger":          "#f87171",
-                   "warning":         "#fbbf24",
-               }
+    "sidebar_bg": "#1e1f23",      # 深蓝灰侧边栏
+    "Level1fg": "#cbd5e1",        # 一级文字灰
+    "Level2fg": "#a1a1aa",        # 二级文字灰
+    "sidebar_active": "#334155",  # 鼠标悬停/选中背景
+    "accent": "#4f6af5",          # 亮蓝强调色
+    "content_bg": "#0d0d0d",      # 内容区背景浅灰
+    "card_bg": "#ffffff",         # 卡片纯白
+    "text_primary": "#0f172a",    # 深色主文字
+    "border": "#2c2c3a"           # 分割线颜色
+}
         # ---------- 读取输入 ----------
         exam_id = self.E_exam_id.get()
         exam_name = self.E_exam_name.get()
@@ -392,17 +394,26 @@ class OperateWindow:
             exam_id, exam_name, exam_time, createtime, changetime
         )
 
-        # ---------- 结果窗口 ----------
-        root_search = tk.Toplevel(self.root)
-        root_search.title("考试查询结果")
-        root_search.configure(bg=COLORS["content_bg"])
+        # ==================================================================
+        # 在原界面内生成结果区（不新建窗口、不清空已有组件）
+        # ==================================================================
 
-        W, H = 1000, 700
-        root_search.update_idletasks()
-        x = (root_search.winfo_screenwidth() - W) // 2
-        y = (root_search.winfo_screenheight() - H) // 2
-        root_search.geometry(f"{W}x{H}+{x}+{y}")
-        root_search.minsize(1000, 600)
+        # 1) 如果上一次查询已经生成过结果区，只销毁它，输入框保持不动
+        if hasattr(self, "_result_container") and self._result_container.winfo_exists():
+            self._result_container.destroy()
+
+        # 2) 创建新的结果容器，挂在 content_frame 中
+        #    行号 20 是为避开输入框（row 2~10）。如果考试输入框占用了不同行，请调整
+        self._result_container = tk.Frame(self.content_frame, bg=COLORS["content_bg"])
+        self._result_container.grid(
+            row=6, column=0, columnspan=4,
+            sticky="nsew", padx=5, pady=(24, 5),
+        )
+
+        # 3) 让该行/列可伸缩，表格才能随窗口大小变化
+        self.content_frame.grid_rowconfigure(6, weight=1)
+        for _c in range(4):
+            self.content_frame.grid_columnconfigure(_c, weight=1)
 
         # ---------- ttk 样式 ----------
         style = ttk.Style()
@@ -464,14 +475,14 @@ class OperateWindow:
             background=[("active", COLORS["accent"])],
         )
 
-        # ---------- 顶部标题区 ----------
-        header = tk.Frame(root_search, bg=COLORS["content_bg"])
-        header.pack(fill="x", padx=36, pady=(28, 0))
+        # ---------- 顶部标题行 ----------
+        header = tk.Frame(self._result_container, bg=COLORS["content_bg"])
+        header.pack(fill="x", pady=(0, 8))
 
         tk.Label(
             header, text="考试查询结果",
             bg=COLORS["content_bg"], fg=COLORS["Level1fg"],
-            font=("PingFang SC", 20, "bold"),
+            font=("PingFang SC", 18, "bold"),
         ).pack(side="left")
 
         count_text = f"共 {len(results)} 条记录" if results else "无匹配记录"
@@ -482,21 +493,21 @@ class OperateWindow:
         ).pack(side="right", pady=(6, 0))
 
         tk.Label(
-            root_search,
+            self._result_container,
             text="以下是符合筛选条件的全部考试数据",
             bg=COLORS["content_bg"], fg=COLORS["Level2fg"],
-            font=("PingFang SC", 12),
-        ).pack(anchor="w", padx=36, pady=(6, 18))
+            font=("PingFang SC", 11),
+        ).pack(anchor="w", pady=(0, 10))
 
         # ---------- 卡片容器 ----------
         card = tk.Frame(
-            root_search,
+            self._result_container,
             bg=COLORS["sidebar_bg"],
             highlightbackground=COLORS["border"],
             highlightthickness=1,
             bd=0,
         )
-        card.pack(fill="both", expand=True, padx=36, pady=(0, 22))
+        card.pack(fill="both", expand=True)
 
         table_frame = tk.Frame(card, bg=COLORS["sidebar_bg"])
         table_frame.pack(fill="both", expand=True, padx=1, pady=1)
@@ -506,7 +517,7 @@ class OperateWindow:
 
         tree = ttk.Treeview(
             table_frame, columns=columns, show="headings",
-            style="DS.Treeview",
+            style="DS.Treeview", height=10,
         )
 
         headers = {
@@ -543,13 +554,18 @@ class OperateWindow:
         scrollbar.pack(side="right", fill="y")
 
         # ---------- 底部按钮区 ----------
-        footer = tk.Frame(root_search, bg=COLORS["content_bg"])
-        footer.pack(fill="x", padx=36, pady=(0, 26))
+        footer = tk.Frame(self._result_container, bg=COLORS["content_bg"])
+        footer.pack(fill="x", pady=(12, 0))
 
-        # 主按钮
+        # 主按钮：关闭结果区（只删除结果，不动输入框）
+        def close_result():
+            if hasattr(self, "_result_container") and self._result_container.winfo_exists():
+                self._result_container.destroy()
+                del self._result_container
+
         close_btn = tk.Button(
             footer, text="关闭",
-            command=root_search.destroy,
+            command=close_result,
             bg=COLORS["accent"], fg=COLORS["card_bg"],
             activebackground=COLORS["sidebar_active"], activeforeground=COLORS["Level1fg"],
             font=("PingFang SC", 12),
@@ -564,21 +580,21 @@ class OperateWindow:
         close_btn.bind("<Enter>", on_enter)
         close_btn.bind("<Leave>", on_leave)
 
-        # 次按钮
+        # 次按钮：导出
         def export_placeholder():
             """弹出系统标准的"保存文件"对话框"""
             filepath = filedialog.asksaveasfilename(
-            title="保存文件",
-            defaultextension=".xlsx",
-            initialfile="未命名.xlsx",
-            filetypes=[
-                        ("Excel 文件", "*.xlsx"),
-                        ("所有文件", "*.*"),
-                        ],
-                    )
+                title="保存文件",
+                defaultextension=".xlsx",
+                initialfile="未命名.xlsx",
+                filetypes=[
+                    ("Excel 文件", "*.xlsx"),
+                    ("所有文件", "*.*"),
+                ],
+            )
             if not filepath:
                 print("用户取消了保存")
-                return None
+                return
             print(f"选择的保存路径: {filepath}")
             export_to_excel(
                 headers=[text for text, _ in headers.values()],
@@ -586,7 +602,7 @@ class OperateWindow:
                 filepath=filepath,
                 sheet_name="查询结果",
                 title="查询结果导出",
-                        )
+            )
 
         export_btn = tk.Button(
             footer, text="导出",
@@ -602,10 +618,19 @@ class OperateWindow:
         )
         export_btn.pack(side="right", padx=(0, 12))
 
-        root_search.mainloop()
-
     #查询成绩
     def search_scores(self):
+        COLORS = {
+    "sidebar_bg": "#1e1f23",      # 深蓝灰侧边栏
+    "Level1fg": "#cbd5e1",        # 一级文字灰
+    "Level2fg": "#a1a1aa",        # 二级文字灰
+    "sidebar_active": "#334155",  # 鼠标悬停/选中背景
+    "accent": "#4f6af5",          # 亮蓝强调色
+    "content_bg": "#0d0d0d",      # 内容区背景浅灰
+    "card_bg": "#ffffff",         # 卡片纯白
+    "text_primary": "#0f172a",    # 深色主文字
+    "border": "#2c2c3a"           # 分割线颜色
+}
         # ---------- 读取输入 ----------
         student_id   = self.E_student_id.get()
         exam_id      = self.E_exam_id.get()
@@ -626,17 +651,26 @@ class OperateWindow:
             rank, headcount, createtime, changetime
         )
 
-        # ---------- 结果窗口 ----------
-        root_search = tk.Toplevel(self.root)
-        root_search.title("成绩查询结果")
-        root_search.configure(bg=COLORS["content_bg"])
+        # ==================================================================
+        # 在原界面内生成结果区（不新建窗口、不清空已有组件）
+        # ==================================================================
 
-        W, H = 1200, 700
-        root_search.update_idletasks()
-        x = (root_search.winfo_screenwidth() - W) // 2
-        y = (root_search.winfo_screenheight() - H) // 2
-        root_search.geometry(f"{W}x{H}+{x}+{y}")
-        root_search.minsize(1000, 600)
+        # 1) 如果上一次查询已经生成过结果区，只销毁它，输入框保持不动
+        if hasattr(self, "_result_container") and self._result_container.winfo_exists():
+            self._result_container.destroy()
+
+        # 2) 创建新的结果容器，挂在 content_frame 中
+        #    行号 20 是为避开输入框（row 2~12）。如果成绩输入框占用了不同行，请调整
+        self._result_container = tk.Frame(self.content_frame, bg=COLORS["content_bg"])
+        self._result_container.grid(
+            row=8, column=0, columnspan=4,
+            sticky="nsew", padx=5, pady=(24, 5),
+        )
+
+        # 3) 让该行/列可伸缩，表格才能随窗口大小变化
+        self.content_frame.grid_rowconfigure(8, weight=1)
+        for _c in range(4):
+            self.content_frame.grid_columnconfigure(_c, weight=1)
 
         # ---------- ttk 样式 ----------
         style = ttk.Style()
@@ -698,14 +732,14 @@ class OperateWindow:
             background=[("active", COLORS["accent"])],
         )
 
-        # ---------- 顶部标题区 ----------
-        header = tk.Frame(root_search, bg=COLORS["content_bg"])
-        header.pack(fill="x", padx=36, pady=(28, 0))
+        # ---------- 顶部标题行 ----------
+        header = tk.Frame(self._result_container, bg=COLORS["content_bg"])
+        header.pack(fill="x", pady=(0, 8))
 
         tk.Label(
             header, text="成绩查询结果",
             bg=COLORS["content_bg"], fg=COLORS["Level1fg"],
-            font=("PingFang SC", 20, "bold"),
+            font=("PingFang SC", 18, "bold"),
         ).pack(side="left")
 
         count_text = f"共 {len(results)} 条记录" if results else "无匹配记录"
@@ -716,24 +750,28 @@ class OperateWindow:
         ).pack(side="right", pady=(6, 0))
 
         tk.Label(
-            root_search,
+            self._result_container,
             text="以下是符合筛选条件的全部成绩数据",
             bg=COLORS["content_bg"], fg=COLORS["Level2fg"],
-            font=("PingFang SC", 12),
-        ).pack(anchor="w", padx=36, pady=(6, 18))
+            font=("PingFang SC", 11),
+        ).pack(anchor="w", pady=(0, 10))
 
         # ---------- 卡片容器 ----------
         card = tk.Frame(
-            root_search,
+            self._result_container,
             bg=COLORS["sidebar_bg"],
             highlightbackground=COLORS["border"],
             highlightthickness=1,
             bd=0,
         )
-        card.pack(fill="both", expand=True, padx=36, pady=(0, 22))
+        card.pack(fill="both", expand=True)
 
         table_frame = tk.Frame(card, bg=COLORS["sidebar_bg"])
         table_frame.pack(fill="both", expand=True, padx=1, pady=1)
+
+        # 表格区用 grid 布局：左上表格 / 右上竖滚动条 / 左下横滚动条
+        table_frame.grid_rowconfigure(0, weight=1)
+        table_frame.grid_columnconfigure(0, weight=1)
 
         # ---------- 表格列 ----------
         columns = (
@@ -744,7 +782,7 @@ class OperateWindow:
 
         tree = ttk.Treeview(
             table_frame, columns=columns, show="headings",
-            style="DS.Treeview",
+            style="DS.Treeview", height=10,
         )
 
         headers = {
@@ -774,32 +812,35 @@ class OperateWindow:
         else:
             tree.insert("", "end", values=("—",) * len(columns), tags=("empty",))
 
-        # 滚动条 + 表格布局
-        scrollbar = ttk.Scrollbar(
+        # 垂直滚动条 + 横向滚动条
+        v_scrollbar = ttk.Scrollbar(
             table_frame, orient="vertical",
             command=tree.yview, style="DS.Vertical.TScrollbar",
         )
-        tree.configure(yscrollcommand=scrollbar.set)
-
-        tree.pack(side="left", fill="both", expand=True)
-        scrollbar.pack(side="right", fill="y")
-
-        # 横向滚动条（9 列较宽，加一个备用）
         h_scrollbar = ttk.Scrollbar(
             table_frame, orient="horizontal",
             command=tree.xview, style="DS.Vertical.TScrollbar",
         )
-        tree.configure(xscrollcommand=h_scrollbar.set)
-        h_scrollbar.pack(side="bottom", fill="x")
+        tree.configure(yscrollcommand=v_scrollbar.set, xscrollcommand=h_scrollbar.set)
+
+        # grid 布局：表格 (0,0)，竖条 (0,1)，横条 (1,0)
+        tree.grid(row=0, column=0, sticky="nsew")
+        v_scrollbar.grid(row=0, column=1, sticky="ns")
+        h_scrollbar.grid(row=1, column=0, sticky="ew")
 
         # ---------- 底部按钮区 ----------
-        footer = tk.Frame(root_search, bg=COLORS["content_bg"])
-        footer.pack(fill="x", padx=36, pady=(0, 26))
+        footer = tk.Frame(self._result_container, bg=COLORS["content_bg"])
+        footer.pack(fill="x", pady=(12, 0))
 
-        # 主按钮
+        # 主按钮：关闭结果区（只删除结果，不动输入框）
+        def close_result():
+            if hasattr(self, "_result_container") and self._result_container.winfo_exists():
+                self._result_container.destroy()
+                del self._result_container
+
         close_btn = tk.Button(
             footer, text="关闭",
-            command=root_search.destroy,
+            command=close_result,
             bg=COLORS["accent"], fg=COLORS["card_bg"],
             activebackground=COLORS["sidebar_active"], activeforeground=COLORS["Level1fg"],
             font=("PingFang SC", 12),
@@ -814,21 +855,21 @@ class OperateWindow:
         close_btn.bind("<Enter>", on_enter)
         close_btn.bind("<Leave>", on_leave)
 
-        # 次按钮
+        # 次按钮：导出
         def export_placeholder():
             """弹出系统标准的"保存文件"对话框"""
             filepath = filedialog.asksaveasfilename(
-            title="保存文件",
-            defaultextension=".xlsx",
-            initialfile="未命名.xlsx",
-            filetypes=[
-                ("Excel 文件", "*.xlsx"),
-                ("所有文件", "*.*"),
-            ],
-        )
+                title="保存文件",
+                defaultextension=".xlsx",
+                initialfile="未命名.xlsx",
+                filetypes=[
+                    ("Excel 文件", "*.xlsx"),
+                    ("所有文件", "*.*"),
+                ],
+            )
             if not filepath:
                 print("用户取消了保存")
-                return None
+                return
             print(f"选择的保存路径: {filepath}")
             export_to_excel(
                 headers=[text for text, _ in headers.values()],
@@ -836,7 +877,7 @@ class OperateWindow:
                 filepath=filepath,
                 sheet_name="查询结果",
                 title="查询结果导出",
-                        )            
+            )
 
         export_btn = tk.Button(
             footer, text="导出",
@@ -851,111 +892,109 @@ class OperateWindow:
             cursor="hand2",
         )
         export_btn.pack(side="right", padx=(0, 12))
-
-        root_search.mainloop()
                        
         
     
     def pack_button(self,target):
         if target == "学生":
-            tk.Label(self.content_frame,text="编号", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=2,column=0,padx=5,pady=5)
+            tk.Label(self.content_frame, text="编号", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=2, column=0, padx=5, pady=5)
             self.E_id = tk.Entry(self.content_frame)
-            self.E_id.grid(row=2,column=1,padx=5,pady=5)
+            self.E_id.grid(row=2, column=1, padx=5, pady=5)
 
-            tk.Label(self.content_frame,text="姓名", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=3,column=0,padx=5,pady=5)
+            tk.Label(self.content_frame, text="姓名", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=2, column=2, padx=5, pady=5)
             self.E_name = tk.Entry(self.content_frame)
-            self.E_name.grid(row=3,column=1,padx=5,pady=5)
+            self.E_name.grid(row=2, column=3, padx=5, pady=5)
 
-            tk.Label(self.content_frame,text="班级", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=4,column=0,padx=5,pady=5)
+            tk.Label(self.content_frame, text="班级", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=3, column=0, padx=5, pady=5)
             self.E_class = tk.Entry(self.content_frame)
-            self.E_class.grid(row=4,column=1,padx=5,pady=5)
+            self.E_class.grid(row=3, column=1, padx=5, pady=5)
 
-            tk.Label(self.content_frame,text="年级", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=5,column=0,padx=5,pady=5)
+            tk.Label(self.content_frame, text="年级", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=3, column=2, padx=5, pady=5)
             self.E_grade = tk.Entry(self.content_frame)
-            self.E_grade.grid(row=5,column=1,padx=5,pady=5)
+            self.E_grade.grid(row=3, column=3, padx=5, pady=5)
 
-            tk.Label(self.content_frame,text="电话", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=6,column=0,padx=5,pady=5)
+            tk.Label(self.content_frame, text="电话", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=4, column=0, padx=5, pady=5)
             self.E_telephonenum = tk.Entry(self.content_frame)
-            self.E_telephonenum.grid(row=6,column=1,padx=5,pady=5)
+            self.E_telephonenum.grid(row=4, column=1, padx=5, pady=5)
 
-            tk.Label(self.content_frame,text="邮箱", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=7,column=0,padx=5,pady=5)
+            tk.Label(self.content_frame, text="邮箱", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=4, column=2, padx=5, pady=5)
             self.E_email = tk.Entry(self.content_frame)
-            self.E_email.grid(row=7,column=1,padx=5,pady=5)
+            self.E_email.grid(row=4, column=3, padx=5, pady=5)
 
-            tk.Label(self.content_frame,text="创建时间", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=8,column=0,padx=5,pady=5)
+            tk.Label(self.content_frame, text="创建时间", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=5, column=0, padx=5, pady=5)
             self.E_createtime = tk.Entry(self.content_frame)
-            self.E_createtime.grid(row=8,column=1,padx=5,pady=5)
+            self.E_createtime.grid(row=5, column=1, padx=5, pady=5)
 
-            tk.Label(self.content_frame,text="修改时间", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=9,column=0,padx=5,pady=5)
+            tk.Label(self.content_frame, text="修改时间", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=5, column=2, padx=5, pady=5)
             self.E_changetime = tk.Entry(self.content_frame)
-            self.E_changetime.grid(row=9,column=1 ,padx=5,pady=5)
+            self.E_changetime.grid(row=5, column=3, padx=5, pady=5)
 
-            B_confirm = tk.Label(self.content_frame,text="确认", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16))
-            B_confirm.grid(row=10,column=0,padx=5,pady=5)
+            B_confirm = tk.Label(self.content_frame, text="确认", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16))
+            B_confirm.grid(row=6, column=0, padx=5, pady=5)
             self.create_Button(B_confirm, lambda: self.search_students())
 
         if target == "考试":
-            tk.Label(self.content_frame,text="考试编号", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=2,column=0,padx=5,pady=5)
+            tk.Label(self.content_frame, text="考试编号", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=2, column=0, padx=5, pady=5)
             self.E_exam_id = tk.Entry(self.content_frame)
-            self.E_exam_id.grid(row=2,column=1,padx=5,pady=5)
+            self.E_exam_id.grid(row=2, column=1, padx=5, pady=5)
 
-            tk.Label(self.content_frame,text="考试名称", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=3,column=0,padx=5,pady=5)
+            tk.Label(self.content_frame, text="考试名称", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=2, column=2, padx=5, pady=5)
             self.E_exam_name = tk.Entry(self.content_frame)
-            self.E_exam_name.grid(row=3,column=1,padx=5,pady=5)
+            self.E_exam_name.grid(row=2, column=3, padx=5, pady=5)
 
-            tk.Label(self.content_frame,text="考试时间", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=4,column=0,padx=5,pady=5)
+            tk.Label(self.content_frame, text="考试时间", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=3, column=0, padx=5, pady=5)
             self.E_exam_time = tk.Entry(self.content_frame)
-            self.E_exam_time.grid(row=4,column=1,padx=5,pady=5)
+            self.E_exam_time.grid(row=3, column=1, padx=5, pady=5)
 
-            tk.Label(self.content_frame,text="创建时间", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=5,column=0,padx=5,pady=5)
+            tk.Label(self.content_frame, text="创建时间", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=3, column=2, padx=5, pady=5)
             self.E_createtime = tk.Entry(self.content_frame)
-            self.E_createtime.grid(row=5,column=1,padx=5,pady=5)
+            self.E_createtime.grid(row=3, column=3, padx=5, pady=5)
 
-            tk.Label(self.content_frame,text="修改时间", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=6,column=0,padx=5,pady=5)
+            tk.Label(self.content_frame, text="修改时间", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=4, column=0, padx=5, pady=5)
             self.E_changetime = tk.Entry(self.content_frame)
-            self.E_changetime.grid(row=6,column=1 ,padx=5,pady=5)
+            self.E_changetime.grid(row=4, column=1, padx=5, pady=5)
 
-            B_confirm = tk.Label(self.content_frame,text="确认", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16))
-            B_confirm.grid(row=7,column=0,padx=5,pady=5)
+            B_confirm = tk.Label(self.content_frame, text="确认", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16))
+            B_confirm.grid(row=5, column=0, padx=5, pady=5)
             self.create_Button(B_confirm, self.search_exams)
 
         if target == "成绩":
-            tk.Label(self.content_frame,text="学生编号", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=2,column=0,padx=5,pady=5)
+            tk.Label(self.content_frame, text="学生编号", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=2, column=0, padx=5, pady=5)
             self.E_student_id = tk.Entry(self.content_frame)
-            self.E_student_id.grid(row=2,column=1,padx=5,pady=5)
+            self.E_student_id.grid(row=2, column=1, padx=5, pady=5)
 
-            tk.Label(self.content_frame,text="考试编号", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=3,column=0,padx=5,pady=5)
+            tk.Label(self.content_frame, text="考试编号", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=2, column=2, padx=5, pady=5)
             self.E_exam_id = tk.Entry(self.content_frame)
-            self.E_exam_id.grid(row=3,column=1,padx=5,pady=5)
+            self.E_exam_id.grid(row=2, column=3, padx=5, pady=5)
 
-            tk.Label(self.content_frame,text="科目", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=4,column=0,padx=5,pady=5)
+            tk.Label(self.content_frame, text="科目", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=3, column=0, padx=5, pady=5)
             self.E_subject = tk.Entry(self.content_frame)
-            self.E_subject.grid(row=4,column=1,padx=5,pady=5)
+            self.E_subject.grid(row=3, column=1, padx=5, pady=5)
 
-            tk.Label(self.content_frame,text="初始成绩", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=5,column=0,padx=5,pady=5)
+            tk.Label(self.content_frame, text="初始成绩", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=3, column=2, padx=5, pady=5)
             self.E_initialscore = tk.Entry(self.content_frame)
-            self.E_initialscore.grid(row=5,column=1,padx=5,pady=5)
+            self.E_initialscore.grid(row=3, column=3, padx=5, pady=5)
 
-            tk.Label(self.content_frame,text="成绩", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=6,column=0,padx=5,pady=5)
+            tk.Label(self.content_frame, text="成绩", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=4, column=0, padx=5, pady=5)
             self.E_score = tk.Entry(self.content_frame)
-            self.E_score.grid(row=6,column=1,padx=5,pady=5)
+            self.E_score.grid(row=4, column=1, padx=5, pady=5)
 
-            tk.Label(self.content_frame,text="排名", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=7,column=0,padx=5,pady=5)
+            tk.Label(self.content_frame, text="排名", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=4, column=2, padx=5, pady=5)
             self.E_rank = tk.Entry(self.content_frame)
-            self.E_rank.grid(row=7,column=1,padx=5,pady=5)
+            self.E_rank.grid(row=4, column=3, padx=5, pady=5)
 
-            tk.Label(self.content_frame,text="总人数", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=8,column=0,padx=5,pady=5)
+            tk.Label(self.content_frame, text="总人数", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=5, column=0, padx=5, pady=5)
             self.E_headcount = tk.Entry(self.content_frame)
-            self.E_headcount.grid(row=8,column=1,padx=5,pady=5) 
+            self.E_headcount.grid(row=5, column=1, padx=5, pady=5)
 
-            tk.Label(self.content_frame,text="创建时间", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=9,column=0,padx=5,pady=5)
+            tk.Label(self.content_frame, text="创建时间", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=5, column=2, padx=5, pady=5)
             self.E_createtime = tk.Entry(self.content_frame)
-            self.E_createtime.grid(row=9,column=1,padx=5,pady=5)
+            self.E_createtime.grid(row=5, column=3, padx=5, pady=5)
 
-            tk.Label(self.content_frame,text="修改时间", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=10,column=0,padx=5,pady=5)
-            self.E_changetime = tk.Entry(self.content_frame)    
-            self.E_changetime.grid(row=10,column=1,padx=5,pady=5)
+            tk.Label(self.content_frame, text="修改时间", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16)).grid(row=6, column=0, padx=5, pady=5)
+            self.E_changetime = tk.Entry(self.content_frame)
+            self.E_changetime.grid(row=6, column=1, padx=5, pady=5)
 
-            B_confirm = tk.Label(self.content_frame,text="确认", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16))
-            B_confirm.grid(row=11,column=0,padx=5,pady=5)
+            B_confirm = tk.Label(self.content_frame, text="确认", bg=COLORS["content_bg"], fg=COLORS["Level2fg"], font=("PingFang SC", 16))
+            B_confirm.grid(row=7, column=0, padx=5, pady=5)
             self.create_Button(B_confirm, self.search_scores)

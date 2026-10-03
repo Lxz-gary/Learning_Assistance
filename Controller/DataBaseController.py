@@ -32,16 +32,14 @@ class DataBaseController:
         return results
 
     # 查询考试数据
-    def query_exam(self, id=None, name=None, subject=None, date=None, createtime=None, changetime=None):
-        initial_check = self.db_manager.query_exams(id, name, subject, date, createtime, changetime)
+    def query_exam(self, id=None, name=None, date=None, createtime=None, changetime=None):
+        initial_check = self.db_manager.query_exams(id, name, date, createtime, changetime)
         results = []
         if initial_check:
             for exam in initial_check:
                 if id and fuzz.partial_ratio(exam[0], id) < 80:
                     continue
                 if name and fuzz.partial_ratio(exam[1], name) < 80:
-                    continue
-                if subject and fuzz.partial_ratio(exam[2], subject) < 80:
                     continue
                 if date and fuzz.partial_ratio(exam[3], date) < 80:
                     continue
