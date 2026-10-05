@@ -28,7 +28,6 @@ class DataBaseController:
                     continue
                 results.append(student)
 
-        print(f"Filtered results: {results}")  # Debugging line to check the filtered results
         return results
 
     # 查询考试数据
@@ -44,7 +43,6 @@ class DataBaseController:
                 if date and fuzz.partial_ratio(exam[3], date) < 80:
                     continue
                 results.append(exam)
-        print(f"Filtered results: {results}")  # Debugging line to check the filtered results
         return results
 
     # 查询成绩数据.     TODO: 询问用户是否需要进行分数模糊化
@@ -53,7 +51,6 @@ class DataBaseController:
         results = []
         if initial_check:
             for score in initial_check:
-                print(f"Checking score: {score}")  # Debugging line to check each score being processed
                 if student_id and fuzz.partial_ratio(score[0], student_id) < 80:
                     continue
                 if exam_id and fuzz.partial_ratio(score[1], exam_id) < 80:
@@ -69,5 +66,5 @@ class DataBaseController:
                 if headcount and fuzz.partial_ratio(str(score[6]), str(headcount)) < 80:
                     continue
                 results.append(score)
-        print(f"Filtered results: {results}")  # Debugging line to check the filtered results
+
         return results
