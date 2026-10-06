@@ -5,7 +5,7 @@ from openpyxl import Workbook
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
 from openpyxl.utils import get_column_letter
 
-
+#导出数据
 def export_to_excel(headers, rows, filepath, sheet_name="Sheet1", title=None):
     """
     将数据导出为 Excel 文件（带样式）
@@ -88,6 +88,24 @@ def export_to_excel(headers, rows, filepath, sheet_name="Sheet1", title=None):
     wb.save(filepath)
     return filepath
 
+#导入数据
+def import_from_excel(filepath):
+    """
+    从 Excel 文件中读取数据
+    :param filepath: Excel 文件路径
+    :return: (headers, rows) 元组，headers 是列标题列表，rows 是数据行列表
+    """
+    from openpyxl import load_workbook
+
+    wb = load_workbook(filepath)
+    ws = wb.active
+
+    headers = [cell.value for cell in ws[1]]
+    rows = []
+    for row in ws.iter_rows(min_row=2, values_only=True):
+        rows.append(row)
+
+    return headers, rows
 
 def default_filename(prefix="导出数据"):
     """生成带时间戳的默认文件名"""
